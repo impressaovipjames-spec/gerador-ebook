@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: gerador-ebook-1-clique
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python server_production.py"
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: DEBUG
+        value: "False"
+      - key: ENVIRONMENT
+        value: "production"
+    healthCheckPath: /api/health

@@ -1,0 +1,5 @@
+# Dependencies para Servidor de Produção Gerador eBook
+Flask>=2.3.0
+Gunicorn>=20.1.0
+requests>=2.31.0
+Werkzeug>=2.3.0
