@@ -1,949 +1,808 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leitor de eBook - IA e Automação 2025</title>
-    <!-- Local fonts and assets for offline use -->
-    <link rel="stylesheet" href="/base.css">
-    <script src="/lucide.min.js"></script>
-    <script src="/turn.min.js"></script>
-    <!-- Fallback fonts for offline use -->
-    <style>
-        :root {
-            /* Cores Primárias (Azul) */
-            --primary-100: #EBF5FF;
-            --primary-500: #007AFF;
-            --primary-700: #0056B3;
-            
-            /* Cores Neutras */
-            --neutral-50: #F8F9FA;
-            --neutral-100: #FFFFFF;
-            --neutral-400: #CED4DA;
-            --neutral-600: #6C757D;
-            --neutral-900: #212529;
-            
-            /* Modo Escuro */
-            --dark-bg: #121212;
-            --dark-surface: #1E1E1E;
-            --dark-border: #343A40;
-            --dark-text-secondary: #ADB5BD;
-            --dark-text-primary: #E9ECEF;
-            --dark-primary: #3395FF;
-            
-            /* Tipografia */
-            --font-ui: 'Inter', sans-serif;
-            --font-content: 'Source Serif Pro', serif;
-            
-            /* Espaçamento */
-            --space-xs: 8px;
-            --space-sm: 16px;
-            --space-md: 24px;
-            --space-lg: 32px;
-            --space-xl: 48px;
-            --space-xxl: 64px;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: var(--font-ui);
-            background-color: var(--neutral-50);
-            color: var(--neutral-900);
-            overflow: hidden;
-            height: 100vh;
-        }
-
-        /* Interface Container */
-        .reader-container {
-            position: relative;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Barra Superior */
-        .top-toolbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 64px;
-            background: var(--neutral-100);
-            border-bottom: 1px solid var(--neutral-400);
-            display: flex;
-            align-items: center;
-            padding: 0 var(--space-md);
-            z-index: 1000;
-            transform: translateY(-100%);
-            transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);
-        }
-
-        .top-toolbar.visible {
-            transform: translateY(0);
-        }
-
-        .toolbar-section {
-            display: flex;
-            align-items: center;
-            gap: var(--space-sm);
-        }
-
-        .toolbar-left {
-            flex: 1;
-        }
-
-        .toolbar-center {
-            flex: 2;
-            justify-content: center;
-        }
-
-        .toolbar-right {
-            flex: 1;
-            justify-content: flex-end;
-        }
-
-        .book-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--neutral-900);
-        }
-
-        /* Área Principal de Leitura */
-        .reading-area {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: var(--space-xxl) 0;
-            position: relative;
-        }
-
-        .book-container {
-            max-width: 800px;
-            width: 100%;
-            height: 100%;
-            position: relative;
-        }
-
-        /* Modo Rolagem */
-        .scroll-content {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 var(--space-lg);
-            line-height: 1.7;
-            font-size: 18px;
-            font-family: var(--font-content);
-        }
-
-        .scroll-content h1 {
-            font-size: 36px;
-            font-weight: 700;
-            line-height: 1.3;
-            margin-bottom: var(--space-xl);
-            color: var(--neutral-900);
-        }
-
-        .scroll-content h2 {
-            font-size: 28px;
-            font-weight: 600;
-            line-height: 1.4;
-            margin: var(--space-xl) 0 var(--space-md);
-            color: var(--neutral-900);
-        }
-
-        .scroll-content h3 {
-            font-size: 20px;
-            font-weight: 600;
-            line-height: 1.5;
-            margin: var(--space-lg) 0 var(--space-sm);
-            color: var(--neutral-900);
-        }
-
-        .scroll-content p {
-            margin-bottom: var(--space-md);
-            color: var(--neutral-900);
-        }
-
-        /* Modo Flipbook */
-        .flipbook {
-            position: absolute;
-            width: 600px;
-            height: 800px;
-            left: 50%;
-            top: 50%;
-            margin-left: -300px;
-            margin-top: -400px;
-        }
-
-        .flipbook .page {
-            width: 300px;
-            height: 800px;
-            background-color: white;
-            background-repeat: no-repeat;
-            background-size: cover;
-        }
-
-        /* Barra Inferior */
-        .bottom-toolbar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 64px;
-            background: var(--neutral-100);
-            border-top: 1px solid var(--neutral-400);
-            display: flex;
-            align-items: center;
-            padding: 0 var(--space-md);
-            z-index: 1000;
-            transform: translateY(100%);
-            transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0px -4px 12px rgba(0, 0, 0, 0.05);
-        }
-
-        .bottom-toolbar.visible {
-            transform: translateY(0);
-        }
-
-        .progress-container {
-            flex: 1;
-            margin: 0 var(--space-md);
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 4px;
-            background: var(--neutral-400);
-            border-radius: 2px;
-            position: relative;
-            cursor: pointer;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--primary-500);
-            border-radius: 2px;
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        .page-counter {
-            font-size: 14px;
-            color: var(--neutral-600);
-            margin-top: 4px;
-            text-align: center;
-        }
-
-        /* Botões de Ícone */
-        .icon-button {
-            width: 44px;
-            height: 44px;
-            border: none;
-            background: transparent;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--neutral-600);
-            transition: all 200ms ease-out;
-            position: relative;
-        }
-
-        .icon-button:hover {
-            background: var(--primary-100);
-            color: var(--primary-500);
-        }
-
-        .icon-button.active {
-            background: var(--primary-100);
-            color: var(--primary-500);
-        }
-
-        /* Painel Lateral */
-        .side-panel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 320px;
-            height: 100vh;
-            background: var(--neutral-100);
-            box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.08);
-            transform: translateX(-100%);
-            transition: transform 400ms cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 2000;
-        }
-
-        .side-panel.open {
-            transform: translateX(0);
-        }
-
-        .panel-header {
-            padding: var(--space-md);
-            border-bottom: 1px solid var(--neutral-400);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .panel-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--neutral-900);
-        }
-
-        .close-button {
-            width: 32px;
-            height: 32px;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            color: var(--neutral-600);
-        }
-
-        .panel-content {
-            padding: var(--space-sm);
-            height: calc(100vh - 80px);
-            overflow-y: auto;
-        }
-
-        /* Busca */
-        .search-input {
-            width: 100%;
-            height: 48px;
-            padding: 0 var(--space-sm);
-            border: 1px solid var(--neutral-400);
-            border-radius: 8px;
-            font-size: 16px;
-            background: var(--neutral-50);
-            margin-bottom: var(--space-sm);
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: var(--primary-500);
-            background: var(--neutral-100);
-        }
-
-        /* Sumário */
-        .table-of-contents {
-            list-style: none;
-        }
-
-        .chapter-item {
-            padding: var(--space-sm);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 200ms ease;
-            font-size: 16px;
-            line-height: 1.5;
-        }
-
-        .chapter-item:hover {
-            background: var(--neutral-50);
-        }
-
-        .chapter-item.active {
-            background: var(--primary-100);
-            font-weight: 600;
-            color: var(--primary-500);
-        }
-
-        .chapter-level-1 {
-            padding-left: var(--space-sm);
-        }
-
-        .chapter-level-2 {
-            padding-left: var(--space-lg);
-            font-size: 14px;
-            color: var(--neutral-600);
-        }
-
-        /* Modo Escuro */
-        .dark-mode {
-            --neutral-50: var(--dark-bg);
-            --neutral-100: var(--dark-surface);
-            --neutral-600: var(--dark-text-secondary);
-            --neutral-900: var(--dark-text-primary);
-            --primary-100: rgba(51, 149, 255, 0.1);
-            --primary-500: var(--dark-primary);
-        }
-
-        /* QR Code Modal */
-        .qr-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 3000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 300ms ease;
-        }
-
-        .qr-modal.open {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .qr-content {
-            background: var(--neutral-100);
-            padding: var(--space-xl);
-            border-radius: 12px;
-            text-align: center;
-            max-width: 400px;
-        }
-
-        .qr-title {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: var(--space-lg);
-            color: var(--neutral-900);
-        }
-
-        .qr-code {
-            width: 200px;
-            height: 200px;
-            margin: 0 auto var(--space-md);
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Audio Player */
-        .audio-player {
-            display: flex;
-            align-items: center;
-            gap: var(--space-sm);
-            padding: var(--space-sm);
-            background: var(--neutral-100);
-            border-radius: 8px;
-            margin: 0 var(--space-sm);
-        }
-
-        .play-button {
-            width: 40px;
-            height: 40px;
-            border: none;
-            border-radius: 50%;
-            background: var(--primary-500);
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .audio-progress {
-            flex: 1;
-            height: 4px;
-            background: var(--neutral-400);
-            border-radius: 2px;
-            position: relative;
-        }
-
-        .audio-progress-fill {
-            height: 100%;
-            background: var(--primary-500);
-            border-radius: 2px;
-            width: 0%;
-        }
-
-        .audio-time {
-            font-size: 14px;
-            color: var(--neutral-600);
-            min-width: 80px;
-        }
-
-        /* Responsivo */
-        @media (max-width: 768px) {
-            .side-panel {
-                width: 90vw;
-                left: 5vw;
-            }
-            
-            .book-title {
-                font-size: 16px;
-            }
-            
-            .icon-button {
-                width: 40px;
-                height: 40px;
-            }
-            
-            .progress-bar {
-                height: 3px;
-            }
-        }
-
-        /* Ocultar texto ao sobre ferramentas */
-        .reading-area:hover .top-toolbar {
-            transform: translateY(0);
-        }
-
-        .reading-area:hover .bottom-toolbar {
-            transform: translateY(0);
-        }
-
-        /* Transições suaves */
-        .fade-enter {
-            opacity: 0;
-        }
-
-        .fade-enter-active {
-            opacity: 1;
-            transition: opacity 300ms ease;
-        }
-
-        .fade-exit {
-            opacity: 1;
-        }
-
-        .fade-exit-active {
-            opacity: 0;
-            transition: opacity 300ms ease;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leitor de eBook - IA e Automação 2025</title>
+<!-- Local fonts and assets for offline use -->
+<link rel="stylesheet" href="/base.css">
+<!-- jQuery dependency added -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="/lucide.min.js"></script>
+<script src="/turn.min.js"></script>
+<!-- Fallback fonts for offline use -->
+<style>
+:root {
+/* Cores Primárias (Azul) */
+--primary-100: #EBF5FF;
+--primary-500: #007AFF;
+--primary-700: #0056B3;
+/* Cores Neutras */
+--neutral-50: #F8F9FA;
+--neutral-100: #FFFFFF;
+--neutral-400: #CED4DA;
+--neutral-600: #6C757D;
+--neutral-900: #212529;
+/* Modo Escuro */
+--dark-bg: #121212;
+--dark-surface: #1E1E1E;
+--dark-border: #343A40;
+--dark-text-secondary: #ADB5BD;
+--dark-text-primary: #E9ECEF;
+--dark-primary: #3395FF;
+/* Tipografia */
+--font-ui: 'Inter', sans-serif;
+--font-content: 'Source Serif Pro', serif;
+/* Espaçamento */
+--space-xs: 8px;
+--space-sm: 16px;
+--space-md: 24px;
+--space-lg: 32px;
+--space-xl: 48px;
+--space-xxl: 64px;
+}
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+body {
+font-family: var(--font-ui);
+background-color: var(--neutral-50);
+color: var(--neutral-900);
+overflow: hidden;
+height: 100vh;
+}
+/* Interface Container */
+.reader-container {
+position: relative;
+height: 100vh;
+display: flex;
+flex-direction: column;
+}
+/* Barra Superior */
+.top-toolbar {
+position: fixed;
+top: 0;
+left: 0;
+right: 0;
+height: 64px;
+background: var(--neutral-100);
+border-bottom: 1px solid var(--neutral-400);
+display: flex;
+align-items: center;
+padding: 0 var(--space-md);
+z-index: 1000;
+transform: translateY(-100%);
+transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);
+}
+.top-toolbar.visible {
+transform: translateY(0);
+}
+.toolbar-section {
+display: flex;
+align-items: center;
+gap: var(--space-sm);
+}
+.toolbar-left {
+flex: 1;
+}
+.toolbar-center {
+flex: 2;
+justify-content: center;
+}
+.toolbar-right {
+flex: 1;
+justify-content: flex-end;
+}
+.book-title {
+font-size: 18px;
+font-weight: 600;
+color: var(--neutral-900);
+}
+/* Área Principal de Leitura */
+.reading-area {
+flex: 1;
+display: flex;
+justify-content: center;
+align-items: center;
+padding: var(--space-xxl) 0;
+position: relative;
+}
+.book-container {
+max-width: 800px;
+width: 100%;
+height: 100%;
+position: relative;
+}
+/* Modo Rolagem */
+.scroll-content {
+max-width: 800px;
+margin: 0 auto;
+padding: 0 var(--space-lg);
+line-height: 1.7;
+font-size: 18px;
+font-family: var(--font-content);
+}
+.scroll-content h1 {
+font-size: 36px;
+font-weight: 700;
+line-height: 1.3;
+margin-bottom: var(--space-xl);
+color: var(--neutral-900);
+}
+.scroll-content h2 {
+font-size: 28px;
+font-weight: 600;
+line-height: 1.4;
+margin: var(--space-xl) 0 var(--space-md);
+color: var(--neutral-900);
+}
+.scroll-content h3 {
+font-size: 20px;
+font-weight: 600;
+line-height: 1.5;
+margin: var(--space-lg) 0 var(--space-sm);
+color: var(--neutral-900);
+}
+.scroll-content p {
+margin-bottom: var(--space-md);
+color: var(--neutral-900);
+}
+/* Modo Flipbook */
+.flipbook {
+position: absolute;
+width: 600px;
+height: 800px;
+left: 50%;
+top: 50%;
+margin-left: -300px;
+margin-top: -400px;
+}
+.flipbook .page {
+width: 300px;
+height: 800px;
+background-color: white;
+background-repeat: no-repeat;
+background-size: cover;
+}
+/* Barra Inferior */
+.bottom-toolbar {
+position: fixed;
+bottom: 0;
+left: 0;
+right: 0;
+height: 64px;
+background: var(--neutral-100);
+border-top: 1px solid var(--neutral-400);
+display: flex;
+align-items: center;
+padding: 0 var(--space-md);
+z-index: 1000;
+transform: translateY(100%);
+transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+box-shadow: 0px -4px 12px rgba(0, 0, 0, 0.05);
+}
+.bottom-toolbar.visible {
+transform: translateY(0);
+}
+.progress-container {
+flex: 1;
+margin: 0 var(--space-md);
+}
+.progress-bar {
+width: 100%;
+height: 4px;
+background: var(--neutral-400);
+border-radius: 2px;
+position: relative;
+cursor: pointer;
+}
+.progress-fill {
+height: 100%;
+background: var(--primary-500);
+border-radius: 2px;
+width: 0%;
+transition: width 0.3s ease;
+}
+.page-counter {
+font-size: 14px;
+color: var(--neutral-600);
+margin-top: 4px;
+text-align: center;
+}
+/* Botões de Ícone */
+.icon-button {
+width: 44px;
+height: 44px;
+border: none;
+background: transparent;
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+color: var(--neutral-600);
+transition: all 200ms ease-out;
+position: relative;
+}
+.icon-button:hover {
+background: var(--primary-100);
+color: var(--primary-500);
+}
+.icon-button.active {
+background: var(--primary-100);
+color: var(--primary-500);
+}
+/* Painel Lateral */
+.side-panel {
+position: fixed;
+top: 0;
+left: 0;
+width: 320px;
+height: 100vh;
+background: var(--neutral-100);
+box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.08);
+transform: translateX(-100%);
+transition: transform 400ms cubic-bezier(0.4, 0, 0.2, 1);
+z-index: 2000;
+}
+.side-panel.open {
+transform: translateX(0);
+}
+.panel-header {
+padding: var(--space-md);
+border-bottom: 1px solid var(--neutral-400);
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+.panel-title {
+font-size: 18px;
+font-weight: 600;
+color: var(--neutral-900);
+}
+.close-button {
+width: 32px;
+height: 32px;
+border: none;
+background: transparent;
+cursor: pointer;
+color: var(--neutral-600);
+}
+.panel-content {
+padding: var(--space-sm);
+height: calc(100vh - 80px);
+overflow-y: auto;
+}
+/* Busca */
+.search-input {
+width: 100%;
+height: 48px;
+padding: 0 var(--space-sm);
+border: 1px solid var(--neutral-400);
+border-radius: 8px;
+font-size: 16px;
+background: var(--neutral-50);
+margin-bottom: var(--space-sm);
+}
+.search-input:focus {
+outline: none;
+border-color: var(--primary-500);
+background: var(--neutral-100);
+}
+/* Sumário */
+.table-of-contents {
+list-style: none;
+}
+.chapter-item {
+padding: var(--space-sm);
+border-radius: 8px;
+cursor: pointer;
+transition: background-color 200ms ease;
+font-size: 16px;
+line-height: 1.5;
+}
+.chapter-item:hover {
+background: var(--neutral-50);
+}
+.chapter-item.active {
+background: var(--primary-100);
+font-weight: 600;
+color: var(--primary-500);
+}
+.chapter-level-1 {
+padding-left: var(--space-sm);
+}
+.chapter-level-2 {
+padding-left: var(--space-lg);
+font-size: 14px;
+color: var(--neutral-600);
+}
+/* Modo Escuro */
+.dark-mode {
+--neutral-50: var(--dark-bg);
+--neutral-100: var(--dark-surface);
+--neutral-600: var(--dark-text-secondary);
+--neutral-900: var(--dark-text-primary);
+--primary-100: rgba(51, 149, 255, 0.1);
+--primary-500: var(--dark-primary);
+}
+/* QR Code Modal */
+.qr-modal {
+position: fixed;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+background: rgba(0, 0, 0, 0.5);
+display: flex;
+align-items: center;
+justify-content: center;
+z-index: 3000;
+opacity: 0;
+visibility: hidden;
+transition: all 300ms ease;
+}
+.qr-modal.open {
+opacity: 1;
+visibility: visible;
+}
+.qr-content {
+background: var(--neutral-100);
+padding: var(--space-xl);
+border-radius: 12px;
+text-align: center;
+max-width: 400px;
+}
+.qr-title {
+font-size: 24px;
+font-weight: 600;
+margin-bottom: var(--space-lg);
+color: var(--neutral-900);
+}
+.qr-code {
+width: 200px;
+height: 200px;
+margin: 0 auto var(--space-md);
+background: white;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+/* Audio Player */
+.audio-player {
+display: flex;
+align-items: center;
+gap: var(--space-sm);
+padding: var(--space-sm);
+background: var(--neutral-100);
+border-radius: 8px;
+margin: 0 var(--space-sm);
+}
+.play-button {
+width: 40px;
+height: 40px;
+border: none;
+border-radius: 50%;
+background: var(--primary-500);
+color: white;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+.audio-progress {
+flex: 1;
+height: 4px;
+background: var(--neutral-400);
+border-radius: 2px;
+position: relative;
+}
+.audio-progress-fill {
+height: 100%;
+background: var(--primary-500);
+border-radius: 2px;
+width: 0%;
+}
+.audio-time {
+font-size: 14px;
+color: var(--neutral-600);
+min-width: 80px;
+}
+/* Responsivo */
+@media (max-width: 768px) {
+.side-panel {
+width: 90vw;
+left: 5vw;
+}
+.book-title {
+font-size: 16px;
+}
+.icon-button {
+width: 40px;
+height: 40px;
+}
+.progress-bar {
+height: 3px;
+}
+}
+/* Ocultar texto ao sobre ferramentas */
+.reading-area:hover .top-toolbar {
+transform: translateY(0);
+}
+.reading-area:hover .bottom-toolbar {
+transform: translateY(0);
+}
+/* Transições suaves */
+.fade-enter {
+opacity: 0;
+}
+.fade-enter-active {
+opacity: 1;
+transition: opacity 300ms ease;
+}
+.fade-exit {
+opacity: 1;
+}
+.fade-exit-active {
+opacity: 0;
+transition: opacity 300ms ease;
+}
+</style>
 </head>
 <body>
-    <div class="reader-container">
-        <!-- Barra Superior -->
-        <div class="top-toolbar" id="topToolbar">
-            <div class="toolbar-section toolbar-left">
-                <h1 class="book-title">IA na Prática: Como Automatizar Seu Trabalho</h1>
-            </div>
-            <div class="toolbar-section toolbar-center">
-                <!-- Espaço central -->
-            </div>
-            <div class="toolbar-section toolbar-right">
-                <button class="icon-button" id="tableOfContentsBtn" title="Sumário">
-                    <i data-lucide="list"></i>
-                </button>
-                <button class="icon-button" id="searchBtn" title="Buscar">
-                    <i data-lucide="search"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- Área de Leitura -->
-        <div class="reading-area" id="readingArea">
-            <div class="book-container" id="bookContainer">
-                <!-- Conteúdo será carregado aqui -->
-            </div>
-        </div>
-
-        <!-- Barra Inferior -->
-        <div class="bottom-toolbar" id="bottomToolbar">
-            <button class="icon-button" id="prevPageBtn" title="Página anterior">
-                <i data-lucide="chevron-left"></i>
-            </button>
-            
-            <div class="progress-container">
-                <div class="progress-bar" id="progressBar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-                <div class="page-counter" id="pageCounter">Página 1 de 1</div>
-            </div>
-            
-            <button class="icon-button" id="nextPageBtn" title="Próxima página">
-                <i data-lucide="chevron-right"></i>
-            </button>
-            
-            <button class="icon-button" id="zoomInBtn" title="Aumentar fonte">
-                <i data-lucide="zoom-in"></i>
-            </button>
-            
-            <button class="icon-button" id="zoomOutBtn" title="Diminuir fonte">
-                <i data-lucide="zoom-out"></i>
-            </button>
-            
-            <button class="icon-button" id="darkModeBtn" title="Modo escuro">
-                <i data-lucide="moon"></i>
-            </button>
-            
-            <button class="icon-button" id="viewModeBtn" title="Alternar visualização">
-                <i data-lucide="book-open"></i>
-            </button>
-            
-            <button class="icon-button" id="shareBtn" title="Compartilhar">
-                <i data-lucide="share-2"></i>
-            </button>
-        </div>
-
-        <!-- Player de Áudio -->
-        <div class="audio-player" id="audioPlayer" style="display: none;">
-            <button class="play-button" id="playPauseBtn">
-                <i data-lucide="play"></i>
-            </button>
-            <div class="audio-progress" id="audioProgressBar">
-                <div class="audio-progress-fill" id="audioProgressFill"></div>
-            </div>
-            <div class="audio-time" id="audioTime">00:00 / 00:00</div>
-        </div>
-    </div>
-
-    <!-- Painel Lateral -->
-    <div class="side-panel" id="sidePanel">
-        <div class="panel-header">
-            <h2 class="panel-title" id="panelTitle">Sumário</h2>
-            <button class="close-button" id="closePanelBtn">
-                <i data-lucide="x"></i>
-            </button>
-        </div>
-        <div class="panel-content">
-            <div id="tableOfContentsView">
-                <input type="text" class="search-input" placeholder="Buscar capítulos..." id="chapterSearch">
-                <ul class="table-of-contents" id="tableOfContents">
-                    <li class="chapter-item active chapter-level-1" data-page="1">1. Introdução: A Maior Revolução</li>
-                    <li class="chapter-item chapter-level-1" data-page="15">2. Suas Ferramentas de Ouro</li>
-                    <li class="chapter-item chapter-level-1" data-page="35">3. Automação No-Code</li>
-                    <li class="chapter-item chapter-level-1" data-page="58">4. IA para Cada Área</li>
-                    <li class="chapter-item chapter-level-1" data-page="82">5. Casos de Sucesso Brasileiros</li>
-                    <li class="chapter-item chapter-level-2" data-page="95">5.1 Samba Tech</li>
-                    <li class="chapter-item chapter-level-2" data-page="98">5.2 Hotmart</li>
-                    <li class="chapter-item chapter-level-2" data-page="101">5.3 HotFrost</li>
-                    <li class="chapter-item chapter-level-1" data-page="105">6. Transformações Pessoais</li>
-                    <li class="chapter-item chapter-level-1" data-page="125">7. Tendências Futuras</li>
-                    <li class="chapter-item chapter-level-1" data-page="145">8. Plano de Ação 30 Dias</li>
-                </ul>
-            </div>
-            <div id="searchView" style="display: none;">
-                <input type="text" class="search-input" placeholder="Buscar no conteúdo..." id="contentSearch">
-                <div id="searchResults"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal QR Code -->
-    <div class="qr-modal" id="qrModal">
-        <div class="qr-content">
-            <h3 class="qr-title">Compartilhar eBook</h3>
-            <div class="qr-code" id="qrCode">
-                <!-- QR Code será gerado aqui -->
-            </div>
-            <p style="color: var(--neutral-600); font-size: 14px;">
-                Escaneie o QR code para abrir o eBook no seu dispositivo móvel
-            </p>
-        </div>
-    </div>
-
-    <script>
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar Lucide Icons
-            lucide.createIcons();
-            
-            // Estado da aplicação
-            let currentPage = 1;
-            let totalPages = 145;
-            let isDarkMode = false;
-            let isFlipbookMode = false;
-            let isPlayingAudio = false;
-            let currentFontSize = 18;
-            
-            // Elementos
-            const topToolbar = document.getElementById('topToolbar');
-            const bottomToolbar = document.getElementById('bottomToolbar');
-            const sidePanel = document.getElementById('sidePanel');
-            const progressBar = document.getElementById('progressBar');
-            const progressFill = document.getElementById('progressFill');
-            const pageCounter = document.getElementById('pageCounter');
-            
-            // Dados do eBook
-            const ebookData = {
-                title: "IA na Prática: Como Automatizar Seu Trabalho e Multiplicar Resultados",
-                author: "MiniMax Agent",
-                pages: 145,
-                chapters: [
-                    { title: "1. Introdução: A Maior Revolução", page: 1 },
-                    { title: "2. Suas Ferramentas de Ouro", page: 15 },
-                    { title: "3. Automação No-Code", page: 35 },
-                    { title: "4. IA para Cada Área", page: 58 },
-                    { title: "5. Casos de Sucesso Brasileiros", page: 82 },
-                    { title: "6. Transformações Pessoais", page: 105 },
-                    { title: "7. Tendências Futuras", page: 125 },
-                    { title: "8. Plano de Ação 30 Dias", page: 145 }
-                ]
-            };
-            
-            // Carregar conteúdo inicial
-            loadScrollContent();
-            
-            // Event Listeners
-            setupEventListeners();
-            
-            // Auto-hide toolbar
-            let toolbarTimeout;
-            document.addEventListener('mousemove', showToolbars);
-            document.addEventListener('touchstart', showToolbars);
-            
-            function showToolbars() {
-                topToolbar.classList.add('visible');
-                bottomToolbar.classList.add('visible');
-                
-                clearTimeout(toolbarTimeout);
-                toolbarTimeout = setTimeout(() => {
-                    topToolbar.classList.remove('visible');
-                    bottomToolbar.classList.remove('visible');
-                }, 3000);
-            }
-            
-            function setupEventListeners() {
-                // Navegação
-                document.getElementById('prevPageBtn').addEventListener('click', () => changePage(-1));
-                document.getElementById('nextPageBtn').addEventListener('click', () => changePage(1));
-                
-                // Modos de visualização
-                document.getElementById('viewModeBtn').addEventListener('click', toggleViewMode);
-                document.getElementById('darkModeBtn').addEventListener('click', toggleDarkMode);
-                
-                // Controles de zoom
-                document.getElementById('zoomInBtn').addEventListener('click', () => adjustFontSize(2));
-                document.getElementById('zoomOutBtn').addEventListener('click', () => adjustFontSize(-2));
-                
-                // Painel lateral
-                document.getElementById('tableOfContentsBtn').addEventListener('click', () => openPanel('contents'));
-                document.getElementById('searchBtn').addEventListener('click', () => openPanel('search'));
-                document.getElementById('closePanelBtn').addEventListener('click', closePanel);
-                
-                // Compartilhamento
-                document.getElementById('shareBtn').addEventListener('click', showQRCode);
-                
-                // Progresso
-                progressBar.addEventListener('click', handleProgressClick);
-                
-                // Navegação por teclado
-                document.addEventListener('keydown', handleKeyboard);
-            }
-            
-            function loadScrollContent() {
-                const container = document.getElementById('bookContainer');
-                container.innerHTML = `
-                    <div class="scroll-content" style="font-size: ${currentFontSize}px;">
-                        <h1>O CÉU É O LIMITE - IA EM 2025</h1>
-                        
-                        <p><em>"A inteligência artificial não vai substituir as pessoas. Mas pessoas que usam IA vão substituir pessoas que não usam."</em> - Tradução livre de Satya Nadella, CEO Microsoft</p>
-                        
-                        <h2>Introdução: A Maior Revolução da Nossa Geração</h2>
-                        
-                        <p>Em 2023, o mundo mudou silenciosamente quando a OpenAI lançou o ChatGPT. Em apenas 2 meses, 100 milhões de pessoas se cadastraram - o crescimento mais rápido da história da internet. Para comparar, o Instagram levou 2,5 anos para alcançar a mesma marca. Hoje, o Brasil é o 4º país que mais usa ChatGPT, enviando 140 milhões de mensagens por dia.</p>
-                        
-                        <p>Mas o que aconteceu em 2024 foi ainda mais impressionante: <strong>a IA saiu dos laboratórios e chegou ao seu trabalho</strong>. No Brasil, 72% das empresas já adotaram IA em algum processo, e 63% dos brasileiros já usaram ferramentas de IA generativa. O país está entre os líderes globais em adoção, com 87% dos profissionais acreditando que IA pode ajudá-los a aprender novas habilidades.</p>
-                        
-                        <p>Se você está lendo este livro, provavelmente já感受到了 essa transformação. Talvez seu colega de trabalho tenha shown como o ChatGPT ajudou a criar uma apresentação em 10 minutos. Ou talvez você tenha ouvido falar sobre alguém que automatizou metade das suas tarefas diárias.</p>
-                        
-                        <p>A verdade é que 2025 será lembrada como o ano da <strong>democratização da IA</strong>. Não se trata mais de "se" você vai usar IA no seu trabalho, mas sim de "quando" e "como" você vai começar.</p>
-                        
-                        <h3>Por Que Este é o Momento Exato</h3>
-                        
-                        <p>Há três fatores únicos acontecendo simultaneamente que fazem deste o momento perfeito para mergulhar na IA:</p>
-                        
-                        <h4>1. A Curva de Adoção Acelerou Radicalmente</h4>
-                        
-                        <p>Em 2023, usar IA era visto como "tech-savvy" ou "early adopter". Em 2024, tornou-se competitivo. Em 2025, será essencial.</p>
-                        
-                        <p>Dados da <strong>Pesquisa User Research Brasil 2024</strong> mostram que:</p>
-                        
-                        <ul>
-                            <li><strong>89% dos profissionais</strong> acham que IA será "crucial" para seus trabalhos nos próximos 2 anos</li>
-                            <li><strong>73% admitem</strong> que se sentem "atrasados" se não aprenderem IA logo</li>
-                            <li><strong>61% dos empregadores</strong> já buscam candidatos com experiência em IA</li>
-                        </ul>
-                        
-                        <h4>2. As Ferramentas Ficaram Ridiculamente Acessíveis</h4>
-                        
-                        <p>Lembra quando você precisou aprender Python para criar automações? Isso mudou. Hoje, você pode:</p>
-                        
-                        <ul>
-                            <li><strong>Automatizar planilhas complexas</strong> sem saber programação</li>
-                            <li><strong>Criar designs profissionais</strong> sem ser designer</li>
-                            <li><strong>Produzir conteúdo de qualidade</strong> sem ser copywriter</li>
-                            <li><strong>Analisar dados</strong> sem ser estatístico</li>
-                        </ul>
-                        
-                        <p>E tudo isso por menos de R$ 200/mês.</p>
-                        
-                        <h4>3. O ROI é Instantâneo e Mensurável</h4>
-                        
-                        <p>Diferente de outras tecnologias que demoram para mostrar resultados, a IA entrega valor <strong>imediatamente</strong>:</p>
-                        
-                        <ul>
-                            <li><strong>ChatGPT</strong>: Economiza 2-4 horas/dia em research e writing</li>
-                            <li><strong>Midjourney</strong>: Reduz custos de design de R$ 200 para R$ 2 por imagem</li>
-                            <li><strong>Zapier</strong>: Automatiza tarefas que tomavam 1 hora/dia</li>
-                            <li><strong>Notion AI</strong>: Transforma disorganized notes em actionable tasks</li>
-                        </ul>
-                        
-                        <h2>A Revolução da IA Generativa em Números</h2>
-                        
-                        <p>Vamos aos dados que importam:</p>
-                        
-                        <h3>Crescimento Global</h3>
-                        
-                        <ul>
-                            <li><strong>Mercado de IA Generativa</strong>: US$ 67,18 bilhões (2024) → US$ 967,65 bilhões (2032) - CAGR de 39,6%</li>
-                            <li><strong>Gastos globais previstos</strong>: US$ 644 bilhões em 2025 (aumento de 76% vs 2024)</li>
-                            <li><strong>Investimento global</strong>: US$ 93,5 bilhões em 2024 (+78% vs 2023)</li>
-                        </ul>
-                        
-                        <h3>Impacto no Mercado de Trabalho</h3>
-                        
-                        <ul>
-                            <li><strong>Tarefas automatizáveis</strong>: 30-50% das atividades profissionais atuais</li>
-                            <li><strong>Novos empregos</strong>: 97 milhões de novos empregos relacionados à IA até 2025</li>
-                            <li><strong>Aumento de produtividade</strong>: Média de 25% nas empresas que adotaram IA</li>
-                        </ul>
-                        
-                        <h3>Dados Brasileiros Específicos</h3>
-                        
-                        <ul>
-                            <li><strong>Startups</strong>: 1.247 startups brasileiras usam IA (dados ABStartups 2024)</li>
-                            <li><strong>Inovação</strong>: Brasil é 8º no ranking mundial de adoção de IA (LinkedIn Insights)</li>
-                            <li><strong>Vagas</strong>: 32% das vagas tech no Brasil já exigem skills de IA</li>
-                        </ul>
-                        
-                        <!-- Conteúdo Continua... -->
-                        <p><strong>Próximo Capítulo: "Suas Ferramentas de Ouro - O Stack Essencial para 2025"</strong></p>
-                    </div>
-                `;
-            }
-            
-            function changePage(direction) {
-                const newPage = currentPage + direction;
-                if (newPage >= 1 && newPage <= totalPages) {
-                    currentPage = newPage;
-                    updateProgress();
-                }
-            }
-            
-            function updateProgress() {
-                const progress = (currentPage / totalPages) * 100;
-                progressFill.style.width = `${progress}%`;
-                pageCounter.textContent = `Página ${currentPage} de ${totalPages}`;
-            }
-            
-            function toggleViewMode() {
-                const button = document.getElementById('viewModeBtn');
-                isFlipbookMode = !isFlipbookMode;
-                
-                if (isFlipbookMode) {
-                    button.innerHTML = '<i data-lucide="scroll"></i>';
-                    initializeFlipbook();
-                } else {
-                    button.innerHTML = '<i data-lucide="book-open"></i>';
-                    loadScrollContent();
-                }
-                
-                lucide.createIcons();
-            }
-            
-            function toggleDarkMode() {
-                const button = document.getElementById('darkModeBtn');
-                const icon = button.querySelector('i');
-                
-                isDarkMode = !isDarkMode;
-                document.body.classList.toggle('dark-mode', isDarkMode);
-                
-                if (isDarkMode) {
-                    icon.setAttribute('data-lucide', 'sun');
-                    button.title = 'Modo claro';
-                } else {
-                    icon.setAttribute('data-lucide', 'moon');
-                    button.title = 'Modo escuro';
-                }
-                
-                lucide.createIcons();
-            }
-            
-            function adjustFontSize(delta) {
-                const newSize = currentFontSize + delta;
-                if (newSize >= 12 && newSize <= 32) {
-                    currentFontSize = newSize;
-                    const content = document.querySelector('.scroll-content');
-                    if (content) {
-                        content.style.fontSize = `${currentFontSize}px`;
-                    }
-                }
-            }
-            
-            function openPanel(type) {
-                const title = document.getElementById('panelTitle');
-                const contentsView = document.getElementById('tableOfContentsView');
-                const searchView = document.getElementById('searchView');
-                
-                if (type === 'contents') {
-                    title.textContent = 'Sumário';
-                    contentsView.style.display = 'block';
-                    searchView.style.display = 'none';
-                } else if (type === 'search') {
-                    title.textContent = 'Buscar';
-                    contentsView.style.display = 'none';
-                    searchView.style.display = 'block';
-                }
-                
-                sidePanel.classList.add('open');
-            }
-            
-            function closePanel() {
-                sidePanel.classList.remove('open');
-            }
-            
-            function handleProgressClick(event) {
-                const rect = progressBar.getBoundingClientRect();
-                const clickX = event.clientX - rect.left;
-                const progress = clickX / rect.width;
-                currentPage = Math.round(progress * totalPages);
-                updateProgress();
-            }
-            
-            function handleKeyboard(event) {
-                switch(event.key) {
-                    case 'ArrowLeft':
-                        changePage(-1);
-                        break;
-                    case 'ArrowRight':
-                        changePage(1);
-                        break;
-                    case 't':
-                        openPanel('contents');
-                        break;
-                    case 'f':
-                        openPanel('search');
-                        break;
-                    case 'd':
-                        toggleDarkMode();
-                        break;
-                }
-            }
-            
-            function showQRCode() {
-                const modal = document.getElementById('qrModal');
-                modal.classList.add('open');
-                
-                // Aqui você pode integrar uma biblioteca de QR Code
-                // Por exemplo, QRCode.js
-                document.getElementById('qrModal').addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        modal.classList.remove('open');
-                    }
-                });
-            }
-            
-            // Atualizar progresso inicial
-            updateProgress();
-        });
-    </script>
+<div class="reader-container">
+<!-- Barra Superior -->
+<div class="top-toolbar" id="topToolbar">
+<div class="toolbar-section toolbar-left">
+<h1 class="book-title">IA na Prática: Como Automatizar Seu Trabalho</h1>
+</div>
+<div class="toolbar-section toolbar-center">
+<!-- Espaço central -->
+</div>
+<div class="toolbar-section toolbar-right">
+<button class="icon-button" id="tableOfContentsBtn" title="Sumário">
+<i data-lucide="list"></i>
+</button>
+<button class="icon-button" id="searchBtn" title="Buscar">
+<i data-lucide="search"></i>
+</button>
+</div>
+</div>
+<!-- Área de Leitura -->
+<div class="reading-area" id="readingArea">
+<div class="book-container" id="bookContainer">
+<!-- Conteúdo será carregado aqui -->
+</div>
+</div>
+<!-- Barra Inferior -->
+<div class="bottom-toolbar" id="bottomToolbar">
+<button class="icon-button" id="prevPageBtn" title="Página anterior">
+<i data-lucide="chevron-left"></i>
+</button>
+<div class="progress-container">
+<div class="progress-bar" id="progressBar">
+<div class="progress-fill" id="progressFill"></div>
+</div>
+<div class="page-counter" id="pageCounter">Página 1 de 1</div>
+</div>
+<button class="icon-button" id="nextPageBtn" title="Próxima página">
+<i data-lucide="chevron-right"></i>
+</button>
+<button class="icon-button" id="zoomInBtn" title="Aumentar fonte">
+<i data-lucide="zoom-in"></i>
+</button>
+<button class="icon-button" id="zoomOutBtn" title="Diminuir fonte">
+<i data-lucide="zoom-out"></i>
+</button>
+<button class="icon-button" id="darkModeBtn" title="Modo escuro">
+<i data-lucide="moon"></i>
+</button>
+<button class="icon-button" id="viewModeBtn" title="Alternar visualização">
+<i data-lucide="book-open"></i>
+</button>
+<button class="icon-button" id="shareBtn" title="Compartilhar">
+<i data-lucide="share-2"></i>
+</button>
+</div>
+<!-- Player de Áudio -->
+<div class="audio-player" id="audioPlayer" style="display: none;">
+<button class="play-button" id="playPauseBtn">
+<i data-lucide="play"></i>
+</button>
+<div class="audio-progress" id="audioProgressBar">
+<div class="audio-progress-fill" id="audioProgressFill"></div>
+</div>
+<div class="audio-time" id="audioTime">00:00 / 00:00</div>
+</div>
+</div>
+<!-- Painel Lateral -->
+<div class="side-panel" id="sidePanel">
+<div class="panel-header">
+<h2 class="panel-title" id="panelTitle">Sumário</h2>
+<button class="close-button" id="closePanelBtn">
+<i data-lucide="x"></i>
+</button>
+</div>
+<div class="panel-content">
+<div id="tableOfContentsView">
+<input type="text" class="search-input" placeholder="Buscar capítulos..." id="chapterSearch">
+<ul class="table-of-contents" id="tableOfContents">
+<li class="chapter-item active chapter-level-1" data-page="1">1. Introdução: A Maior Revolução</li>
+<li class="chapter-item chapter-level-1" data-page="15">2. Suas Ferramentas de Ouro</li>
+<li class="chapter-item chapter-level-1" data-page="35">3. Automação No-Code</li>
+<li class="chapter-item chapter-level-1" data-page="58">4. IA para Cada Área</li>
+<li class="chapter-item chapter-level-1" data-page="82">5. Casos de Sucesso Brasileiros</li>
+<li class="chapter-item chapter-level-2" data-page="95">5.1 Samba Tech</li>
+<li class="chapter-item chapter-level-2" data-page="98">5.2 Hotmart</li>
+<li class="chapter-item chapter-level-2" data-page="101">5.3 HotFrost</li>
+<li class="chapter-item chapter-level-1" data-page="105">6. Transformações Pessoais</li>
+<li class="chapter-item chapter-level-1" data-page="125">7. Tendências Futuras</li>
+<li class="chapter-item chapter-level-1" data-page="145">8. Plano de Ação 30 Dias</li>
+</ul>
+</div>
+<div id="searchView" style="display: none;">
+<input type="text" class="search-input" placeholder="Buscar no conteúdo..." id="contentSearch">
+<div id="searchResults"></div>
+</div>
+</div>
+</div>
+<!-- Modal QR Code -->
+<div class="qr-modal" id="qrModal">
+<div class="qr-content">
+<h3 class="qr-title">Compartilhar eBook</h3>
+<div class="qr-code" id="qrCode">
+<!-- QR Code será gerado aqui -->
+</div>
+<p style="color: var(--neutral-600); font-size: 14px;">
+Escaneie o QR code para abrir o eBook no seu dispositivo móvel
+</p>
+</div>
+</div>
+<script>
+// Inicialização
+document.addEventListener('DOMContentLoaded', function() {
+// Inicializar Lucide Icons
+lucide.createIcons();
+// Estado da aplicação
+let currentPage = 1;
+let totalPages = 145;
+let isDarkMode = false;
+let isFlipbookMode = false;
+let isPlayingAudio = false;
+let currentFontSize = 18;
+// Elementos
+const topToolbar = document.getElementById('topToolbar');
+const bottomToolbar = document.getElementById('bottomToolbar');
+const sidePanel = document.getElementById('sidePanel');
+const progressBar = document.getElementById('progressBar');
+const progressFill = document.getElementById('progressFill');
+const pageCounter = document.getElementById('pageCounter');
+// Dados do eBook
+const ebookData = {
+title: "IA na Prática: Como Automatizar Seu Trabalho e Multiplicar Resultados",
+author: "MiniMax Agent",
+pages: 145,
+chapters: [
+{ title: "1. Introdução: A Maior Revolução", page: 1 },
+{ title: "2. Suas Ferramentas de Ouro", page: 15 },
+{ title: "3. Automação No-Code", page: 35 },
+{ title: "4. IA para Cada Área", page: 58 },
+{ title: "5. Casos de Sucesso Brasileiros", page: 82 },
+{ title: "6. Transformações Pessoais", page: 105 },
+{ title: "7. Tendências Futuras", page: 125 },
+{ title: "8. Plano de Ação 30 Dias", page: 145 }
+]
+};
+// Carregar conteúdo inicial
+loadScrollContent();
+// Event Listeners
+setupEventListeners();
+// Auto-hide toolbar
+let toolbarTimeout;
+document.addEventListener('mousemove', showToolbars);
+document.addEventListener('touchstart', showToolbars);
+function showToolbars() {
+topToolbar.classList.add('visible');
+bottomToolbar.classList.add('visible');
+clearTimeout(toolbarTimeout);
+toolbarTimeout = setTimeout(() => {
+topToolbar.classList.remove('visible');
+bottomToolbar.classList.remove('visible');
+}, 3000);
+}
+function setupEventListeners() {
+// Navegação
+document.getElementById('prevPageBtn').addEventListener('click', () => changePage(-1));
+document.getElementById('nextPageBtn').addEventListener('click', () => changePage(1));
+// Modos de visualização
+document.getElementById('viewModeBtn').addEventListener('click', toggleViewMode);
+document.getElementById('darkModeBtn').addEventListener('click', toggleDarkMode);
+// Controles de zoom
+document.getElementById('zoomInBtn').addEventListener('click', () => adjustFontSize(2));
+document.getElementById('zoomOutBtn').addEventListener('click', () => adjustFontSize(-2));
+// Painel lateral
+document.getElementById('tableOfContentsBtn').addEventListener('click', () => openPanel('contents'));
+document.getElementById('searchBtn').addEventListener('click', () => openPanel('search'));
+document.getElementById('closePanelBtn').addEventListener('click', closePanel);
+// Compartilhamento
+document.getElementById('shareBtn').addEventListener('click', showQRCode);
+// Progresso
+progressBar.addEventListener('click', handleProgressClick);
+// Navegação por teclado
+document.addEventListener('keydown', handleKeyboard);
+}
+function loadScrollContent() {
+const container = document.getElementById('bookContainer');
+container.innerHTML = `
+<div class="scroll-content" style="font-size: ${currentFontSize}px;">
+<h1>O CÉU É O LIMITE - IA EM 2025</h1>
+<p><em>"A inteligência artificial não vai substituir as pessoas. Mas pessoas que usam IA vão substituir pessoas que não usam."</em> - Tradução livre de Satya Nadella, CEO Microsoft</p>
+<h2>Introdução: A Maior Revolução da Nossa Geração</h2>
+<p>Em 2023, o mundo mudou silenciosamente quando a OpenAI lançou o ChatGPT. Em apenas 2 meses, 100 milhões de pessoas se cadastraram - o crescimento mais rápido da história da internet. Para comparar, o Instagram levou 2,5 anos para alcançar a mesma marca. Hoje, o Brasil é o 4º país que mais usa ChatGPT, enviando 140 milhões de mensagens por dia.</p>
+<p>Mas o que aconteceu em 2024 foi ainda mais impressionante: <strong>a IA saiu dos laboratórios e chegou ao seu trabalho</strong>. No Brasil, 72% das empresas já adotaram IA em algum processo, e 63% dos brasileiros já usaram ferramentas de IA generativa. O país está entre os líderes globais em adoção, com 87% dos profissionais acreditando que IA pode ajudá-los a aprender novas habilidades.</p>
+<p>Se você está lendo este livro, provavelmente já感受到了 essa transformação. Talvez seu colega de trabalho tenha shown como o ChatGPT ajudou a criar uma apresentação em 10 minutos. Ou talvez você tenha ouvido falar sobre alguém que automatizou metade das suas tarefas diárias.</p>
+<p>A verdade é que 2025 será lembrada como o ano da <strong>democratização da IA</strong>. Não se trata mais de "se" você vai usar IA no seu trabalho, mas sim de "quando" e "como" você vai começar.</p>
+<h3>Por Que Este é o Momento Exato</h3>
+<p>Há três fatores únicos acontecendo simultaneamente que fazem deste o momento perfeito para mergulhar na IA:</p>
+<h4>1. A Curva de Adoção Acelerou Radicalmente</h4>
+<p>Em 2023, usar IA era visto como "tech-savvy" ou "early adopter". Em 2024, tornou-se competitivo. Em 2025, será essencial.</p>
+<p>Dados da <strong>Pesquisa User Research Brasil 2024</strong> mostram que:</p>
+<ul>
+<li><strong>89% dos profissionais</strong> acham que IA será "crucial" para seus trabalhos nos próximos 2 anos</li>
+<li><strong>73% admitem</strong> que se sentem "atrasados" se não aprenderem IA logo</li>
+<li><strong>61% dos empregadores</strong> já buscam candidatos com experiência em IA</li>
+</ul>
+<h4>2. As Ferramentas Ficaram Ridiculamente Acessíveis</h4>
+<p>Lembra quando você precisou aprender Python para criar automações? Isso mudou. Hoje, você pode:</p>
+<ul>
+<li><strong>Automatizar planilhas complexas</strong> sem saber programação</li>
+<li><strong>Criar designs profissionais</strong> sem ser designer</li>
+<li><strong>Produzir conteúdo de qualidade</strong> sem ser copywriter</li>
+<li><strong>Analisar dados</strong> sem ser estatístico</li>
+</ul>
+<p>E tudo isso por menos de R$ 200/mês.</p>
+<h4>3. O ROI é Instantâneo e Mensurável</h4>
+<p>Diferente de outras tecnologias que demoram para mostrar resultados, a IA entrega valor <strong>imediatamente</strong>:</p>
+<ul>
+<li><strong>ChatGPT</strong>: Economiza 2-4 horas/dia em research e writing</li>
+<li><strong>Midjourney</strong>: Reduz custos de design de R$ 200 para R$ 2 por imagem</li>
+<li><strong>Zapier</strong>: Automatiza tarefas que tomavam 1 hora/dia</li>
+<li><strong>Notion AI</strong>: Transforma disorganized notes em actionable tasks</li>
+</ul>
+<h2>A Revolução da IA Generativa em Números</h2>
+<p>Vamos aos dados que importam:</p>
+<h3>Crescimento Global</h3>
+<ul>
+<li><strong>Mercado de IA Generativa</strong>: US$ 67,18 bilhões (2024) → US$ 967,65 bilhões (2032) - CAGR de 39,6%</li>
+<li><strong>Gastos globais previstos</strong>: US$ 644 bilhões em 2025 (aumento de 76% vs 2024)</li>
+<li><strong>Investimento global</strong>: US$ 93,5 bilhões em 2024 (+78% vs 2023)</li>
+</ul>
+<h3>Impacto no Mercado de Trabalho</h3>
+<ul>
+<li><strong>Tarefas automatizáveis</strong>: 30-50% das atividades profissionais atuais</li>
+<li><strong>Novos empregos</strong>: 97 milhões de novos empregos relacionados à IA até 2025</li>
+<li><strong>Aumento de produtividade</strong>: Média de 25% nas empresas que adotaram IA</li>
+</ul>
+<h3>Dados Brasileiros Específicos</h3>
+<ul>
+<li><strong>Startups</strong>: 1.247 startups brasileiras usam IA (dados ABStartups 2024)</li>
+<li><strong>Inovação</strong>: Brasil é 8º no ranking mundial de adoção de IA (LinkedIn Insights)</li>
+<li><strong>Vagas</strong>: 32% das vagas tech no Brasil já exigem skills de IA</li>
+</ul>
+<!-- Conteúdo Continua... -->
+<p><strong>Próximo Capítulo: "Suas Ferramentas de Ouro - O Stack Essencial para 2025"</strong></p>
+</div>
+`;
+}
+function changePage(direction) {
+const newPage = currentPage + direction;
+if (newPage >= 1 && newPage <= totalPages) {
+currentPage = newPage;
+updateProgress();
+}
+}
+function updateProgress() {
+const progress = (currentPage / totalPages) * 100;
+progressFill.style.width = `${progress}%`;
+pageCounter.textContent = `Página ${currentPage} de ${totalPages}`;
+}
+function toggleViewMode() {
+const button = document.getElementById('viewModeBtn');
+isFlipbookMode = !isFlipbookMode;
+if (isFlipbookMode) {
+button.innerHTML = '<i data-lucide="scroll"></i>';
+initializeFlipbook();
+} else {
+button.innerHTML = '<i data-lucide="book-open"></i>';
+loadScrollContent();
+}
+lucide.createIcons();
+}
+function toggleDarkMode() {
+const button = document.getElementById('darkModeBtn');
+const icon = button.querySelector('i');
+isDarkMode = !isDarkMode;
+document.body.classList.toggle('dark-mode', isDarkMode);
+if (isDarkMode) {
+icon.setAttribute('data-lucide', 'sun');
+button.title = 'Modo claro';
+} else {
+icon.setAttribute('data-lucide', 'moon');
+button.title = 'Modo escuro';
+}
+lucide.createIcons();
+}
+function adjustFontSize(delta) {
+const newSize = currentFontSize + delta;
+if (newSize >= 12 && newSize <= 32) {
+currentFontSize = newSize;
+const content = document.querySelector('.scroll-content');
+if (content) {
+content.style.fontSize = `${currentFontSize}px`;
+}
+}
+}
+function openPanel(type) {
+const title = document.getElementById('panelTitle');
+const contentsView = document.getElementById('tableOfContentsView');
+const searchView = document.getElementById('searchView');
+if (type === 'contents') {
+title.textContent = 'Sumário';
+contentsView.style.display = 'block';
+searchView.style.display = 'none';
+} else if (type === 'search') {
+title.textContent = 'Buscar';
+contentsView.style.display = 'none';
+searchView.style.display = 'block';
+}
+sidePanel.classList.add('open');
+}
+function closePanel() {
+sidePanel.classList.remove('open');
+}
+function handleProgressClick(event) {
+const rect = progressBar.getBoundingClientRect();
+const clickX = event.clientX - rect.left;
+const progress = clickX / rect.width;
+currentPage = Math.round(progress * totalPages);
+updateProgress();
+}
+function handleKeyboard(event) {
+switch(event.key) {
+case 'ArrowLeft':
+changePage(-1);
+break;
+case 'ArrowRight':
+changePage(1);
+break;
+case 't':
+openPanel('contents');
+break;
+case 'f':
+openPanel('search');
+break;
+case 'd':
+toggleDarkMode();
+break;
+}
+}
+function showQRCode() {
+const modal = document.getElementById('qrModal');
+modal.classList.add('open');
+// Aqui você pode integrar uma biblioteca de QR Code
+// Por exemplo, QRCode.js
+document.getElementById('qrModal').addEventListener('click', function(e) {
+if (e.target === this) {
+modal.classList.remove('open');
+}
+});
+}
+// Atualizar progresso inicial
+updateProgress();
+});
+</script>
 </body>
 </html>
