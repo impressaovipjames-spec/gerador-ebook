@@ -1,76 +1,117 @@
 #!/usr/bin/env python3
+"""
+SERVIDOR SIMPLES PARA RENDER.COM - GERADOR EBOOK
+Versão super simples que funciona 100% no Render
+"""
+
 import os
 import json
-import hashlib
-import time
-from flask import Flask, jsonify, send_from_directory
+import sys
+from flask import Flask, send_file, jsonify, send_from_directory
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-LEITOR_DIR = os.path.join(BASE_DIR, "app", "leitor")
-EXPORTS_DIR = os.path.join(BASE_DIR, "app", "exports")
+# DEBUG AMPLO
+print("=== DEBUG INICIAL ===")
+print(f"OS PATH: {os.path}")
+print(f"CWD: {os.getcwd()}")
+print(f"FILES: {os.listdir('.')}")
+if os.path.exists('app'):
+    print(f"APP exists: {os.listdir('app')}")
+    if os.path.exists('app/leitor'):
+        print(f"LEITOR exists: {os.listdir('app/leitor')}")
+print("=== FIM DEBUG ===")
 
-app = Flask(__name__, static_folder=LEITOR_DIR, static_url_path="")
+app = Flask(__name__)
 
-# === ROTA PRINCIPAL (interface do leitor) ===
-@app.route("/")
+@app.route('/')
 def home():
-    index_path = os.path.join(LEITOR_DIR, "ebook_reader.html")
-    if os.path.exists(index_path):
-        return send_from_directory(LEITOR_DIR, "ebook_reader.html")
-    else:
-        return "<h2>Arquivo ebook_reader.html não encontrado.</h2>", 404
+    """Servir a página principal"""
+    try:
+        # Múltiplas tentativas de encontrar o arquivo
+        possible_files = [
+            'app/leitor/ebook_reader.html',
+            'app/leitor/index.html',
+            'leitor/ebook_reader.html',
+            'index.html'
+        ]
+        
+        for filename in possible_files:
+            if os.path.exists(filename):
+                print(f"✅ SERVIDO: {filename}")
+                return send_file(filename, mimetype='text/html')
+        
+        # Se não encontrou nenhum
+        return f"""
+        <h2>ERRO: Arquivo HTML não encontrado</h2>
+        <p>Caminhos testados:</p>
+        <ul>
+        {''.join(f'<li>{path}</li>' for path in possible_files)}
+        </ul>
+        <p>CWD: {os.getcwd()}</p>
+        <p>Files here: {os.listdir('.')}</p>
+        <a href="/debug">Ver debug completo</a>
+        """
+        
+    except Exception as e:
+        return f"<h1>ERRO: {str(e)}</h1>"
 
-# === ARQUIVOS ESTÁTICOS (css, js, imagens) ===
-@app.route("/assets/<path:path>")
-def assets(path):
-    return send_from_directory(os.path.join(LEITOR_DIR, "assets"), path)
-
-# === EXPORTS ===
-@app.route("/exports/<path:filename>")
-def exports(filename):
-    return send_from_directory(EXPORTS_DIR, filename)
-
-# === HEALTH CHECK ===
-@app.route("/api/health")
-def api_health():
-    response = {
-        "ok": True,
-        "environment": "production",
-        "online_mode": True,
-        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "version": "1.0.0"
+@app.route('/debug')
+def debug():
+    """Debug completo do sistema"""
+    debug_info = {
+        "current_dir": os.getcwd(),
+        "files_here": os.listdir('.'),
+        "app_exists": os.path.exists('app'),
+        "leitor_exists": os.path.exists('leitor'),
+        "app_leitor_exists": os.path.exists('app/leitor'),
+        "files_in_app": os.listdir('app') if os.path.exists('app') else "Pasta app não existe",
+        "files_in_app_leitor": os.listdir('app/leitor') if os.path.exists('app/leitor') else "Pasta app/leitor não existe"
     }
-    return jsonify(response)
+    
+    # Verificar todos os arquivos possíveis
+    possible_files = [
+        'app/leitor/ebook_reader.html',
+        'app/leitor/index.html',
+        'leitor/ebook_reader.html',
+        'index.html'
+    ]
+    
+    debug_info["possible_files"] = {}
+    for filename in possible_files:
+        debug_info["possible_files"][filename] = os.path.exists(filename)
+    
+    return jsonify(debug_info, indent=2)
 
-# === EXPORTS LIST ===
-@app.route("/api/exports")
-def api_exports():
-    files = []
-    if os.path.exists(EXPORTS_DIR):
-        for filename in os.listdir(EXPORTS_DIR):
-            filepath = os.path.join(EXPORTS_DIR, filename)
-            if os.path.isfile(filepath):
-                with open(filepath, "rb") as f:
-                    sha256 = hashlib.sha256(f.read()).hexdigest()
-                files.append({
-                    "name": filename,
-                    "size": os.path.getsize(filepath),
-                    "checksum": sha256,
-                    "url": f"/exports/{filename}"
-                })
-    return jsonify({"count": len(files), "files": files})
+@app.route('/api/health')
+def health():
+    """Health check melhorado"""
+    html_found = False
+    html_path = None
+    
+    possible_files = [
+        'app/leitor/ebook_reader.html',
+        'app/leitor/index.html',
+        'leitor/ebook_reader.html',
+        'index.html'
+    ]
+    
+    for filename in possible_files:
+        if os.path.exists(filename):
+            html_found = True
+            html_path = filename
+            break
+    
+    return jsonify({
+        "status": "healthy" if html_found else "missing_html",
+        "html_found": html_found,
+        "html_path": html_path,
+        "cwd": os.getcwd(),
+        "has_app": os.path.exists('app'),
+        "has_leitor": os.path.exists('app/leitor'),
+        "server_type": "simple_render"
+    })
 
-# === ADMIN (placeholder) ===
-@app.route("/admin")
-def admin():
-    return "<h1>Painel Administrativo</h1><p>Em breve...</p>"
-
-# === LEITOR (rota direta) ===
-@app.route("/leitor")
-def leitor():
-    return send_from_directory(LEITOR_DIR, "ebook_reader.html")
-
-# === EXECUÇÃO PRINCIPAL ===
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 8080))
+    print(f"Iniciando servidor na porta {port}")
+    print(f"Servindo arquivos de: {os.getcwd()}")
+    app.run(host='0.0.0.0', port=port, debug=True)
