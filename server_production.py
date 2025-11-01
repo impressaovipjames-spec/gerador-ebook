@@ -1,141 +1,102 @@
 #!/usr/bin/env python3
 """
-SERVIDOR CORRETIVO PARA GERADOR EBOOK
-Corrige problemas na rota / e debug
+Servidor Flask limpo para GERADOR_EBOOK_FINAL_DEPLOY
+Elimina problemas de offline, múltiplos servidores e complexidades
 """
 
 import os
-import json
 import sys
-import traceback
-from flask import Flask, send_file, jsonify, send_from_directory
-
-# DEBUG AMPLO
-print("=== DEBUG INICIAL ===")
-print(f"OS PATH: {os.path}")
-print(f"CWD: {os.getcwd()}")
-print(f"Files: {os.listdir('.')}")
-print("=== FIM DEBUG ===")
+from flask import Flask, jsonify
 
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-    """Servir a página principal com debug completo"""
-    try:
-        print(f"=== ROTA / CHAMADA ===")
-        print(f"CWD: {os.getcwd()}")
-        print(f"Files here: {os.listdir('.')}")
-        
-        # Verificar se app existe
-        if os.path.exists('app'):
-            print(f"App dir: {os.listdir('app')}")
-            if os.path.exists('app/leitor'):
-                print(f"Leitor dir: {os.listdir('app/leitor')}")
-        
-        # Buscar arquivo
-        html_file = 'app/leitor/ebook_reader.html'
-        
-        if os.path.exists(html_file):
-            print(f"✅ ARQUIVO ENCONTRADO: {html_file}")
-            print(f"Absolute path: {os.path.abspath(html_file)}")
-            return send_file(html_file, mimetype='text/html')
-        else:
-            print(f"❌ ARQUIVO NÃO ENCONTRADO: {html_file}")
+    """Servir a página principal"""
+    # Tenta encontrar o arquivo HTML em diferentes localizações
+    html_file = find_ebook_html()
+    
+    if html_file:
+        try:
+            with open(html_file, 'r', encoding='utf-8') as f:
+                html_content = f.read()
+            return html_content
+        except Exception as e:
             return f"""
-            <h2>Arquivo não encontrado</h2>
-            <p>Procurado: {html_file}</p>
-            <p>CWD: {os.getcwd()}</p>
-            <p>Files: {os.listdir('.')}</p>
-            <a href="/debug">Debug completo</a>
+            <html>
+            <head><title>Erro</title></head>
+            <body>
+                <h1>Erro ao ler arquivo HTML</h1>
+                <p>Arquivo encontrado: {html_file}</p>
+                <p>Erro: {e}</p>
+                <p><a href="/debug">Ver debug</a></p>
+            </body>
+            </html>
             """
-            
-    except Exception as e:
-        print(f"❌ ERRO NA ROTA /: {str(e)}")
-        print(f"Traceback: {traceback.format_exc()}")
-        return f"""
-        <h1>Erro na rota /</h1>
-        <p>Erro: {str(e)}</p>
-        <p><a href="/debug">Ver debug</a></p>
+    else:
+        return """
+        <html>
+        <head><title>Ebook não encontrado</title></head>
+        <body>
+            <h1>Ebook não encontrado</h1>
+            <p>Não foi possível localizar o arquivo ebook_reader.html</p>
+            <p>Verifique se o arquivo existe em:</p>
+            <ul>
+                <li>ebook_reader.html</li>
+                <li>app/ebook_reader.html</li>
+                <li>./ebook_reader.html</li>
+            </ul>
+            <p><a href="/debug">Ver debug</a></p>
+        </body>
+        </html>
         """
 
 @app.route('/debug')
 def debug():
-    """Debug completo do sistema"""
-    try:
-        debug_info = {
-            "current_dir": os.getcwd(),
-            "files_here": os.listdir('.'),
-            "app_exists": os.path.exists('app'),
-            "leitor_exists": os.path.exists('leitor'),
-            "app_leitor_exists": os.path.exists('app/leitor'),
-            "files_in_app": os.listdir('app') if os.path.exists('app') else "Pasta app não existe",
-            "files_in_app_leitor": os.listdir('app/leitor') if os.path.exists('app/leitor') else "Pasta app/leitor não existe"
-        }
-        
-        # Verificar todos os arquivos possíveis
-        possible_files = [
-            'app/leitor/ebook_reader.html',
-            'app/leitor/index.html',
-            'leitor/ebook_reader.html',
-            'index.html'
-        ]
-        
-        debug_info["possible_files"] = {}
-        for filename in possible_files:
-            debug_info["possible_files"][filename] = os.path.exists(filename)
-        
-        return jsonify(debug_info, indent=2)
-        
-    except Exception as e:
-        print(f"❌ ERRO NO DEBUG: {str(e)}")
-        return f"""
-        <h1>Erro no debug</h1>
-        <p>Erro: {str(e)}</p>
-        <pre>{traceback.format_exc()}</pre>
-        """
+    """Debug informações"""
+    return jsonify({
+        "current_dir": os.getcwd(),
+        "python_version": "Flask production",
+        "method": "direct file reading",
+        "html_found": bool(find_ebook_html()),
+        "debug_info": "Versão limpa - sem dependências complexas"
+    })
 
 @app.route('/api/health')
 def health():
-    """Health check melhorado"""
-    try:
-        html_found = False
-        html_path = None
-        
-        possible_files = [
-            'app/leitor/ebook_reader.html',
-            'app/leitor/index.html',
-            'leitor/ebook_reader.html',
-            'index.html'
-        ]
-        
-        for filename in possible_files:
-            if os.path.exists(filename):
-                html_found = True
-                html_path = filename
-                break
-        
-        return jsonify({
-            "status": "healthy" if html_found else "missing_html",
-            "html_found": html_found,
-            "html_path": html_path,
-            "cwd": os.getcwd(),
-            "has_app": os.path.exists('app'),
-            "has_leitor": os.path.exists('app/leitor'),
-            "server_type": "simple_render",
-            "absolute_path": os.path.abspath(html_path) if html_path else None
-        })
-        
-    except Exception as e:
-        print(f"❌ ERRO NO HEALTH: {str(e)}")
-        return jsonify({
-            "status": "error",
-            "error": str(e),
-            "traceback": traceback.format_exc()
-        })
+    """Health check para Render"""
+    return jsonify({
+        "status": "healthy",
+        "app": "GERADOR_EBOOK_FINAL_DEPLOY",
+        "method": "clean production version"
+    })
+
+def find_ebook_html():
+    """Encontra o arquivo HTML em diferentes localizações"""
+    possible_paths = [
+        "ebook_reader.html",
+        "app/ebook_reader.html",
+        os.path.join(os.getcwd(), "ebook_reader.html"),
+        os.path.join(os.getcwd(), "app", "ebook_reader.html"),
+        os.path.join(".", "ebook_reader.html"),
+        os.path.join("app", "ebook_reader.html")
+    ]
+    
+    for path in possible_paths:
+        if os.path.exists(path):
+            return path
+    
+    return None
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8080))
-    print(f"Iniciando servidor na porta {port}")
-    print(f"Servindo arquivos de: {os.getcwd()}")
-    app.run(host='0.0.0.0', port=port, debug=True)
+    # Porta para Render
+    port = int(os.environ.get('PORT', 10000))
+    
+    print("=== GERADOR_EBOOK_FINAL_DEPLOY - SERVIDOR LIMPO ===")
+    print(f"Diretório: {os.getcwd()}")
+    print(f"Porta: {port}")
+    print(f"Arquivo HTML encontrado: {find_ebook_html()}")
+    print("============================================")
+    
+    # Usar apenas o Flask
+    app.run(host='0.0.0.0', port=port)
