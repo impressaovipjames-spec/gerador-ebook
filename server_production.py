@@ -1,102 +1,89 @@
 #!/usr/bin/env python3
 """
-Servidor Flask limpo para GERADOR_EBOOK_FINAL_DEPLOY
-Elimina problemas de offline, múltiplos servidores e complexidades
+Servidor Flask CORRIGIDO FINAL - GERADOR_EBOOK_FINAL_DEPLOY
+Resolve problema 404 para arquivos CSS/JS
 """
 
 import os
-import sys
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_file
 
 app = Flask(__name__)
 
+# ===== ROTA PARA ARQUIVOS ESTÁTICOS =====
+@app.route('/<path:filename>')
+def serve_static(filename):
+    """Serve arquivos CSS, JS e outros estáticos"""
+    if os.path.exists(filename):
+        if filename.endswith('.css'):
+            return send_file(filename, mimetype='text/css')
+        elif filename.endswith('.js'):
+            return send_file(filename, mimetype='application/javascript')
+        elif filename.endswith(('.html', '.htm')):
+            return send_file(filename, mimetype='text/html')
+        else:
+            return send_file(filename)
+    return f"Arquivo {filename} não encontrado", 404
+
+# ===== ROTA PRINCIPAL =====
 @app.route('/')
 def home():
     """Servir a página principal"""
-    # Tenta encontrar o arquivo HTML em diferentes localizações
     html_file = find_ebook_html()
-    
+
     if html_file:
         try:
             with open(html_file, 'r', encoding='utf-8') as f:
                 html_content = f.read()
             return html_content
         except Exception as e:
-            return f"""
-            <html>
-            <head><title>Erro</title></head>
-            <body>
-                <h1>Erro ao ler arquivo HTML</h1>
-                <p>Arquivo encontrado: {html_file}</p>
-                <p>Erro: {e}</p>
-                <p><a href="/debug">Ver debug</a></p>
-            </body>
-            </html>
-            """
-    else:
-        return """
-        <html>
-        <head><title>Ebook não encontrado</title></head>
-        <body>
-            <h1>Ebook não encontrado</h1>
-            <p>Não foi possível localizar o arquivo ebook_reader.html</p>
-            <p>Verifique se o arquivo existe em:</p>
-            <ul>
-                <li>ebook_reader.html</li>
-                <li>app/ebook_reader.html</li>
-                <li>./ebook_reader.html</li>
-            </ul>
-            <p><a href="/debug">Ver debug</a></p>
-        </body>
-        </html>
-        """
+            return f"<html><body><h1>Erro ao ler HTML</h1><p>{e}</p></body></html>"
+    
+    return """
+    
+```<body>
+        <h1>Ebook não encontrado</h1>
+        <p>Arquivos encontrados: {files}</p>
+        <p><a href="/debug">Ver debug</a></p>
+    </body>```
 
+    """.format(files=', '.join(os.listdir('.')))
+
+# ===== ROTAS DE DEBUG =====
 @app.route('/debug')
 def debug():
     """Debug informações"""
     return jsonify({
         "current_dir": os.getcwd(),
-        "python_version": "Flask production",
-        "method": "direct file reading",
+        "files_in_dir": os.listdir('.'),
         "html_found": bool(find_ebook_html()),
-        "debug_info": "Versão limpa - sem dependências complexas"
+        "css_exists": os.path.exists('base.css'),
+        "js_exists": os.path.exists('lucide.min.js') and os.path.exists('turn.min.js'),
+        "debug_info": "COM ROTA DE ARQUIVOS ESTÁTICOS"
     })
 
 @app.route('/api/health')
 def health():
-    """Health check para Render"""
+    """Health check"""
     return jsonify({
         "status": "healthy",
-        "app": "GERADOR_EBOOK_FINAL_DEPLOY",
-        "method": "clean production version"
+        "app": "GERADOR_EBOOK_FINAL_DEPLOY", 
+        "static_files_ok": os.path.exists('base.css'),
+        "static_files_size": {
+            "base.css": os.path.getsize('base.css') if os.path.exists('base.css') else 0,
+            "lucide.js": os.path.getsize('lucide.min.js') if os.path.exists('lucide.min.js') else 0,
+            "turn.js": os.path.getsize('turn.min.js') if os.path.exists('turn.min.js') else 0
+        }
     })
 
 def find_ebook_html():
-    """Encontra o arquivo HTML em diferentes localizações"""
-    possible_paths = [
-        "ebook_reader.html",
-        "app/ebook_reader.html",
-        os.path.join(os.getcwd(), "ebook_reader.html"),
-        os.path.join(os.getcwd(), "app", "ebook_reader.html"),
-        os.path.join(".", "ebook_reader.html"),
-        os.path.join("app", "ebook_reader.html")
-    ]
-    
-    for path in possible_paths:
+    """Encontra o arquivo HTML"""
+    for path in ["ebook_reader.html", "app/ebook_reader.html"]:
         if os.path.exists(path):
             return path
-    
     return None
 
 if __name__ == '__main__':
-    # Porta para Render
     port = int(os.environ.get('PORT', 10000))
-    
-    print("=== GERADOR_EBOOK_FINAL_DEPLOY - SERVIDOR LIMPO ===")
-    print(f"Diretório: {os.getcwd()}")
-    print(f"Porta: {port}")
-    print(f"Arquivo HTML encontrado: {find_ebook_html()}")
-    print("============================================")
-    
-    # Usar apenas o Flask
+    print(f"Servidor iniciando - Port: {port}")
+    print(f"Arquivos: {os.listdir('.')}")
     app.run(host='0.0.0.0', port=port)
