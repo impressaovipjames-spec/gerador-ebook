@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VIPNEXUS Dashboard</title>
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <!-- Chart.js -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    /* ==================== ESTILO GERAL ==================== */
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: "Segoe UI", sans-serif;
       background: linear-gradient(145deg, #0f3460, #16213e, #1a1a2e);
       color: #fff;
       min-height: 100vh;
@@ -21,19 +21,32 @@
       flex-direction: column;
     }
 
+    /* HEADER COM LOGO */
     header {
-      background: rgba(15, 52, 96, 0.9);
+      background: rgba(15, 52, 96, 0.95);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1rem 2rem;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+      padding: 0.75rem 2rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
     }
 
-    header h1 {
-      font-size: 1.5rem;
-      color: #fff;
-      letter-spacing: 1px;
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo {
+      height: 55px;
+      width: auto;
+      filter: drop-shadow(0 0 6px rgba(156, 142, 241, 0.6));
+      transition: transform 0.3s ease, filter 0.3s ease;
+    }
+
+    .logo:hover {
+      transform: scale(1.05);
+      filter: drop-shadow(0 0 10px rgba(156, 142, 241, 0.9));
     }
 
     nav ul {
@@ -67,14 +80,14 @@
     .card {
       background: rgba(22, 33, 62, 0.95);
       border-radius: 15px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       padding: 1.5rem;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     .card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
     }
 
     .card h3 {
@@ -82,7 +95,6 @@
       color: #9f8ef1;
     }
 
-    /* ==================== AI CHAT ==================== */
     #chat-box {
       height: 180px;
       overflow-y: auto;
@@ -118,7 +130,6 @@
       background: #7c63e0;
     }
 
-    /* ==================== NICHE SEARCH ==================== */
     #niche-results {
       background: #0f3460;
       border-radius: 10px;
@@ -128,13 +139,11 @@
       overflow-y: auto;
     }
 
-    /* ==================== STATISTICS ==================== */
     canvas {
       width: 100%;
       height: 200px;
     }
 
-    /* ==================== PROGRESS TRACKER ==================== */
     .progress-container {
       width: 100%;
       background: #0f3460;
@@ -151,7 +160,6 @@
       transition: width 0.5s ease;
     }
 
-    /* ==================== RECENT ACTIVITY ==================== */
     #recent-activity ul {
       list-style: none;
       padding-left: 1rem;
@@ -159,10 +167,9 @@
 
     #recent-activity li {
       padding: 0.5rem 0;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    /* ==================== TOAST ==================== */
     #toast {
       position: fixed;
       bottom: 30px;
@@ -174,7 +181,7 @@
       opacity: 0;
       transform: translateY(20px);
       transition: all 0.4s ease;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     }
 
     #toast.show {
@@ -195,14 +202,22 @@
         flex-direction: column;
         gap: 0.5rem;
       }
+      .logo {
+        height: 40px;
+      }
     }
   </style>
 </head>
 
 <body>
-  <!-- ==================== HEADER ==================== -->
   <header>
-    <h1><i class="fa-solid fa-book"></i> VIPNEXUS Dashboard</h1>
+    <div class="logo-container">
+      <img
+        src="./assets/MARCA-MAE-HORIZONTAL.png"
+        alt="VIPNEXUS Logo"
+        class="logo"
+      />
+    </div>
     <nav>
       <ul>
         <li><a href="#">Início</a></li>
@@ -212,32 +227,31 @@
     </nav>
   </header>
 
-  <!-- ==================== MAIN ==================== -->
   <main>
     <div class="grid">
-      <!-- AI CHAT -->
       <div class="card" id="ai-chat">
         <h3><i class="fa-solid fa-robot"></i> AI Chat</h3>
         <div id="chat-box"></div>
-        <input type="text" id="chat-input" placeholder="Digite sua mensagem...">
+        <input
+          type="text"
+          id="chat-input"
+          placeholder="Digite sua mensagem..."
+        />
         <button id="send-btn">Enviar</button>
       </div>
 
-      <!-- NICHE SEARCH -->
       <div class="card" id="niche-search">
         <h3><i class="fa-solid fa-magnifying-glass"></i> Niche Search</h3>
-        <input type="text" id="niche-input" placeholder="Buscar nicho...">
+        <input type="text" id="niche-input" placeholder="Buscar nicho..." />
         <button id="search-btn">Buscar</button>
         <div id="niche-results"></div>
       </div>
 
-      <!-- STATISTICS -->
       <div class="card" id="statistics">
         <h3><i class="fa-solid fa-chart-pie"></i> Statistics</h3>
         <canvas id="statsChart"></canvas>
       </div>
 
-      <!-- PROGRESS TRACKER -->
       <div class="card" id="progress-tracker">
         <h3><i class="fa-solid fa-tasks"></i> Progress Tracker</h3>
         <p>Progresso geral do projeto:</p>
@@ -248,7 +262,6 @@
       </div>
     </div>
 
-    <!-- ==================== RECENT ACTIVITY ==================== -->
     <div class="card" id="recent-activity">
       <h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity</h3>
       <ul id="activity-list">
@@ -259,97 +272,93 @@
     </div>
   </main>
 
-  <!-- ==================== FOOTER ==================== -->
   <footer>
     <div class="progress-container">
-      <div class="progress-bar" style="width:75%;"></div>
+      <div class="progress-bar" style="width: 75%"></div>
     </div>
     <p>© 2025 VIPNEXUS IA • Todos os direitos reservados</p>
   </footer>
 
-  <!-- ==================== TOAST ==================== -->
   <div id="toast">Notificação!</div>
 
-  <!-- ==================== SCRIPT PRINCIPAL ==================== -->
   <script>
-    // ======== AI CHAT SIMULADO ========
-    const chatBox = document.getElementById('chat-box');
-    const chatInput = document.getElementById('chat-input');
-    const sendBtn = document.getElementById('send-btn');
+    const chatBox = document.getElementById("chat-box");
+    const chatInput = document.getElementById("chat-input");
+    const sendBtn = document.getElementById("send-btn");
 
-    sendBtn.addEventListener('click', () => {
+    sendBtn.addEventListener("click", () => {
       const text = chatInput.value.trim();
       if (!text) return;
-      appendMessage('Você', text);
-      chatInput.value = '';
+      appendMessage("Você", text);
+      chatInput.value = "";
       setTimeout(() => {
-        appendMessage('ORION IA', 'Mensagem recebida e processada com sucesso.');
-        showToast('Nova resposta do ORION IA');
+        appendMessage(
+          "ORION IA",
+          "Mensagem recebida e processada com sucesso."
+        );
+        showToast("Nova resposta do ORION IA");
       }, 1000);
     });
 
     function appendMessage(sender, message) {
-      const p = document.createElement('p');
+      const p = document.createElement("p");
       p.innerHTML = `<strong>${sender}:</strong> ${message}`;
       chatBox.appendChild(p);
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // ======== NICHE SEARCH ========
-    const searchBtn = document.getElementById('search-btn');
-    const nicheInput = document.getElementById('niche-input');
-    const nicheResults = document.getElementById('niche-results');
+    const searchBtn = document.getElementById("search-btn");
+    const nicheInput = document.getElementById("niche-input");
+    const nicheResults = document.getElementById("niche-results");
 
-    searchBtn.addEventListener('click', () => {
+    searchBtn.addEventListener("click", () => {
       const query = nicheInput.value.trim();
       if (!query) return;
-      nicheResults.innerHTML = '<p>Buscando nichos relacionados...</p>';
+      nicheResults.innerHTML = "<p>Buscando nichos relacionados...</p>";
       setTimeout(() => {
         nicheResults.innerHTML = `
           <p><i class="fa-solid fa-lightbulb"></i> ${query} Premium</p>
           <p><i class="fa-solid fa-lightbulb"></i> ${query} Avançado</p>
           <p><i class="fa-solid fa-lightbulb"></i> ${query} Profissional</p>`;
-        showToast('Resultados de nicho atualizados');
+        showToast("Resultados de nicho atualizados");
       }, 1000);
     });
 
-    // ======== CHART JS ========
-    const ctx = document.getElementById('statsChart').getContext('2d');
+    const ctx = document.getElementById("statsChart").getContext("2d");
     new Chart(ctx, {
-      type: 'bar',
+      type: "bar",
       data: {
-        labels: ['Ebooks', 'Projetos', 'IA Chats', 'Pesquisas'],
-        datasets: [{
-          label: 'Performance',
-          data: [12, 19, 7, 15],
-          backgroundColor: ['#6c63ff', '#9f8ef1', '#7c63e0', '#b095ff']
-        }]
+        labels: ["Ebooks", "Projetos", "IA Chats", "Pesquisas"],
+        datasets: [
+          {
+            label: "Performance",
+            data: [12, 19, 7, 15],
+            backgroundColor: ["#6c63ff", "#9f8ef1", "#7c63e0", "#b095ff"],
+          },
+        ],
       },
       options: {
         responsive: true,
         scales: {
-          y: { beginAtZero: true }
-        }
-      }
+          y: { beginAtZero: true },
+        },
+      },
     });
 
-    // ======== PROGRESS TRACKER ========
-    const progressBar = document.getElementById('progress-bar');
-    const progressValue = document.getElementById('progress-value');
-
-    progressBar.addEventListener('click', () => {
+    const progressBar = document.getElementById("progress-bar");
+    const progressValue = document.getElementById("progress-value");
+    progressBar.addEventListener("click", () => {
       let width = Math.min(100, Math.random() * 100);
-      progressBar.style.width = width + '%';
-      progressValue.textContent = Math.round(width) + '%';
-      showToast('Progresso atualizado');
+      progressBar.style.width = width + "%";
+      progressValue.textContent = Math.round(width) + "%";
+      showToast("Progresso atualizado");
     });
 
-    // ======== SISTEMA DE TOAST ========
-    const toast = document.getElementById('toast');
+    const toast = document.getElementById("toast");
     function showToast(message) {
       toast.textContent = message;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 3000);
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3000);
     }
   </script>
 </body>
