@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIPNEXUS • Gerador Revolucionário de E-books</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #1a1a2e 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: rgba(15, 52, 96, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid rgba(159, 142, 241, 0.3);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            height: 45px;
+            width: auto;
+            filter: drop-shadow(0 2px 10px rgba(159, 142, 241, 0.5));
+        }
+
+        .welcome-section {
+            text-align: right;
+        }
+
+        .welcome-text {
+            font-size: 14px;
+            color: #9f8ef1;
+            margin-bottom: 5px;
+        }
+
+        .date-time {
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+        }
+
+        /* Main Layout */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 75px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 480px;
+            background: rgba(15, 52, 96, 0.6);
+            backdrop-filter: blur(15px);
+            border-right: 2px solid rgba(159, 142, 241, 0.2);
+            padding: 20px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #9f8ef1 transparent;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #9f8ef1;
+            border-radius: 3px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(159, 142, 241, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .card-icon {
+            font-size: 18px;
+            color: #9f8ef1;
+            width: 24px;
+            text-align: center;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+        }
+
+        /* Ebooks Salvos */
+        .ebooks-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .ebook-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-left: 3px solid #9f8ef1;
+        }
+
+        .ebook-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .ebook-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 3px;
+        }
+
+        .ebook-date {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Chat IA */
+        .chat-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 12px;
+            color: white;
+            font-size: 12px;
+            resize: vertical;
+            min-height: 80px;
+            margin-bottom: 10px;
+        }
+
+        .chat-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .send-btn {
+            background: linear-gradient(45deg, #9f8ef1, #7c63e0);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(159, 142, 241, 0.4);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Pesquisa */
+        .search-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 12px;
+            color: white;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Progresso Digital */
+        .digital-progress {
+            text-align: center;
+        }
+
+        .digital-time {
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            font-weight: bold;
+            color: #9f8ef1;
+            margin: 15px 0;
+            text-shadow: 0 0 20px rgba(159, 142, 241, 0.5);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #9f8ef1, #7c63e0);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        /* Área Principal */
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(15, 52, 96, 0.4) 0%, rgba(26, 26, 46, 0.6) 100%);
+        }
+
+        .main-title {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(45deg, #9f8ef1, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .main-subtitle {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 30px;
+        }
+
+        .generation-panel {
+            flex: 1;
+            background: rgba(15, 52, 96, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(159, 142, 241, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .generation-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(159, 142, 241, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .panel-content {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .start-btn {
+            background: linear-gradient(45deg, #9f8ef1, #7c63e0);
+            border: none;
+            border-radius: 15px;
+            padding: 15px 40px;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(159, 142, 241, 0.4);
+        }
+
+        .start-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 50vh;
+            }
+            
+            .main-area {
+                padding: 20px;
+            }
+            
+            .main-title {
+                font-size: 24px;
+            }
+        }
+
+        /* Loading Animation */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid #9f8ef1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo-section">
+            <img src="app/assets/MARCA-MAE-HORIZONTAL.svg" alt="VIPNEXUS" class="logo">
+        </div>
+        <div class="welcome-section">
+            <div class="welcome-text">Olá <span id="user-name">Jaime</span>, seja bem-vindo!</div>
+            <div class="date-time" id="current-datetime"></div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Meus E-books -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-book card-icon"></i>
+                    <h3 class="card-title">Meus E-books Gerados</h3>
+                </div>
+                <div class="ebooks-list" id="ebooks-list">
+                    <div class="ebook-item">
+                        <div class="ebook-title">IA para Negócios 2025</div>
+                        <div class="ebook-date">03/11/2025 • 15:30</div>
+                    </div>
+                    <div class="ebook-item">
+                        <div class="ebook-title">Marketing Digital Avançado</div>
+                        <div class="ebook-date">02/11/2025 • 09:15</div>
+                    </div>
+                    <div class="ebook-item">
+                        <div class="ebook-title">Receitas Saudáveis Rápidas</div>
+                        <div class="ebook-date">01/11/2025 • 14:45</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat IA -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-robot card-icon"></i>
+                    <h3 class="card-title">Planeje seu E-book</h3>
+                </div>
+                <textarea 
+                    id="chat-input" 
+                    class="chat-input" 
+                    placeholder="Conte à IA como deseja seu e-book: tema, público-alvo, objetivo..."
+                ></textarea>
+                <button id="send-chat-btn" class="send-btn" onclick="sendChatMessage()">
+                    <i class="fas fa-paper-plane"></i> Enviar para IA
+                </button>
+            </div>
+
+            <!-- Pesquisa de Nichos -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-search card-icon"></i>
+                    <h3 class="card-title">Nichos em Alta</h3>
+                </div>
+                <input 
+                    type="text" 
+                    id="niche-input" 
+                    class="search-input" 
+                    placeholder="Digite um nicho..."
+                >
+                <button id="search-niche-btn" class="send-btn" onclick="searchNiches()">
+                    <i class="fas fa-chart-line"></i> Pesquisar Tendências
+                </button>
+                <div id="niche-results" style="margin-top: 10px; font-size: 11px; color: rgba(255,255,255,0.7);">
+                    Dica: Teste "Inteligência Artificial", "Marketing Digital", "Saúde Mental"
+                </div>
+            </div>
+
+            <!-- Trending Topics -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-fire card-icon"></i>
+                    <h3 class="card-title">Trending Topics</h3>
+                </div>
+                <canvas id="trending-chart" width="400" height="200"></canvas>
+            </div>
+
+            <!-- Progresso Digital -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-stopwatch card-icon"></i>
+                    <h3 class="card-title">Criação do E-book</h3>
+                </div>
+                <div class="digital-progress">
+                    <div class="digital-time" id="digital-time">00:00:00</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 5px;">
+                        Status: <span id="creation-status">Aguardando início...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Área Principal -->
+        <div class="main-area">
+            <h1 class="main-title">Assista seu E-book Nascer</h1>
+            <p class="main-subtitle">Acompanhe em tempo real a criação do seu e-book revolucionário</p>
+            
+            <div class="generation-panel">
+                <div class="panel-content">
+                    <div style="font-size: 48px; margin-bottom: 20px;">🚀</div>
+                    <h3 style="font-size: 24px; margin-bottom: 15px;">Pronto para Revolucionar?</h3>
+                    <p style="font-size: 16px; color: rgba(255,255,255,0.7); max-width: 400px; line-height: 1.6;">
+                        Configure sua visão através do Chat IA, escolha o nicho em alta e clique em "Iniciar Criação" 
+                        para assistir seu e-book sendo formado em tempo real.
+                    </p>
+                    <button class="start-btn" onclick="startEbookCreation()">
+                        <i class="fas fa-magic"></i> Iniciar Criação
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data e Hora em Tempo Real
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('current-datetime').textContent = 
+                now.toLocaleDateString('pt-BR', options);
+        }
+
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+
+        // Chat IA
+        async function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const button = document.getElementById('send-chat-btn');
+            
+            if (!input.value.trim()) {
+                alert('Por favor, digite sua mensagem para a IA!');
+                return;
+            }
+
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner"></span> Processando...';
+
+            const userMessage = input.value;
+            input.value = '';
+
+            // Simulação de resposta da IA
+            setTimeout(() => {
+                const responses = [
+                    `Excelente ideia! Com base em "${userMessage}", sugiro estruturar seu e-book em 5 capítulos: Introdução, Desenvolvimento com casos práticos, Ferramentas específicas, Estratégias avançadas e Conclusão com próximo passos.`,
+                    `Perfeito! Para o tema "${userMessage}", recomendo focar em [público específico] e incluir: 1) Fundamentos teóricos, 2) Metodologia prática, 3) Exemplos reais, 4) Templates para download.`,
+                    `Ótima visão! Seu e-book sobre "${userMessage}" pode ter: Introdução envolvente, 3-4 capítulos principais com ações práticas, cases de sucesso, checklist final e recursos adicionais.`,
+                    `Fantástico! Baseado em "${userMessage}", sugiro: Hook emocional na abertura, storytelling em cada capítulo, exercícios interativos, infográficos e um call-to-action poderoso no final.`
+                ];
+
+                const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                
+                // Simular exibição da resposta (em versão real, seria uma API call)
+                console.log('IA:', randomResponse);
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar para IA';
+                
+                alert('IA respondeu: ' + randomResponse);
+            }, 2000);
+        }
+
+        // Pesquisa de Nichos
+        async function searchNiches() {
+            const input = document.getElementById('niche-input');
+            const button = document.getElementById('search-niche-btn');
+            const results = document.getElementById('niche-results');
+            
+            if (!input.value.trim()) {
+                alert('Digite um nicho para pesquisar!');
+                return;
+            }
+
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner"></span> Pesquisando...';
+
+            const niche = input.value;
+            input.value = '';
+
+            // Simulação de pesquisa de mercado
+            setTimeout(() => {
+                const marketData = [
+                    { nicho: 'Inteligência Artificial', potencial: 'Alto', tendencia: 'Crescendo +45%', competitividade: 'Média' },
+                    { nicho: 'Marketing Digital', potencial: 'Alto', tendencia: 'Estável +12%', competitividade: 'Alta' },
+                    { nicho: 'Finanças Pessoais', potencial: 'Médio', tendencia: 'Crescendo +23%', competitividade: 'Média' },
+                    { nicho: 'Saúde Mental', potencial: 'Alto', tendencia: 'Explodindo +67%', competitividade: 'Baixa' },
+                    { nicho: 'Sustentabilidade', potencial: 'Médio', tendencia: 'Crescendo +34%', competitividade: 'Baixa' }
+                ];
+
+                const randomData = marketData[Math.floor(Math.random() * marketData.length)];
+                
+                results.innerHTML = `
+                    <strong>Nicho:</strong> ${randomData.nicho}<br>
+                    <strong>Potencial:</strong> ${randomData.potencial}<br>
+                    <strong>Tendência:</strong> ${randomData.tendencia}<br>
+                    <strong>Competitividade:</strong> ${randomData.competitividade}
+                `;
+                
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-chart-line"></i> Pesquisar Tendências';
+            }, 2500);
+        }
+
+        // Gráfico Trending Topics
+        const ctx = document.getElementById('trending-chart').getContext('2d');
+        const trendingChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['IA', 'Crypto', 'Sustentabilidade', 'Saúde Mental', 'Remote Work'],
+                datasets: [{
+                    label: 'Engajamento (%)',
+                    data: [85, 67, 78, 92, 71],
+                    backgroundColor: [
+                        'rgba(159, 142, 241, 0.8)',
+                        'rgba(124, 99, 224, 0.8)',
+                        'rgba(108, 99, 255, 0.8)',
+                        'rgba(176, 149, 255, 0.8)',
+                        'rgba(138, 124, 240, 0.8)'
+                    ],
+                    borderColor: [
+                        '#9f8ef1',
+                        '#7c63e0',
+                        '#6c63ff',
+                        '#b095ff',
+                        '#8a7cf0'
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            font: {
+                                size: 10
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            font: {
+                                size: 10
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Criação do E-book
+        function startEbookCreation() {
+            const button = document.querySelector('.start-btn');
+            const status = document.getElementById('creation-status');
+            const progressFill = document.getElementById('progress-fill');
+            const digitalTime = document.getElementById('digital-time');
+            
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner"></span> Criando...';
+            
+            status.textContent = 'Iniciando criação...';
+            
+            let progress = 0;
+            let elapsed = 0;
+            
+            const steps = [
+                'Analisando conceitos...',
+                'Criando estrutura do e-book...',
+                'Desenvolvendo conteúdo principal...',
+                'Gerando imagens e gráficos...',
+                'Aplicando formatação...',
+                'Otimizando para leitura...',
+                'Finalizando e compactando...',
+                'Preparando para download...',
+                'E-book criado com sucesso!'
+            ];
+            
+            const interval = setInterval(() => {
+                elapsed++;
+                progress = Math.min(progress + 11.11, 100);
+                
+                // Atualizar progresso
+                progressFill.style.width = progress + '%';
+                
+                // Atualizar display digital (formato 00:00:00)
+                const hours = Math.floor(elapsed / 3600);
+                const minutes = Math.floor((elapsed % 3600) / 60);
+                const seconds = elapsed % 60;
+                digitalTime.textContent = 
+                    String(hours).padStart(2, '0') + ':' + 
+                    String(minutes).padStart(2, '0') + ':' + 
+                    String(seconds).padStart(2, '0');
+                
+                // Atualizar status
+                const stepIndex = Math.floor((progress / 100) * steps.length);
+                status.textContent = steps[Math.min(stepIndex, steps.length - 1)];
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    status.textContent = 'Concluído! E-book pronto para download.';
+                    button.innerHTML = '<i class="fas fa-download"></i> Baixar E-book';
+                    button.disabled = false;
+                }
+            }, 2500);
+        }
+
+        // Enter key support
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('chat-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendChatMessage();
+                }
+            });
+            
+            document.getElementById('niche-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchNiches();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
