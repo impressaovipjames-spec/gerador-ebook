@@ -1,356 +1,306 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VIPNEXUS Dashboard</title>
-  <!-- Font Awesome -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VIPNEXUS • Veja seu E-book Nascer</title>
+
+  <!-- Font Awesome e Chart.js -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    /* ==================== ESTILO GERAL ==================== */
+    /* ================== ESTILO GERAL ================== */
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: "Segoe UI", sans-serif;
       background: linear-gradient(145deg, #0f3460, #16213e, #1a1a2e);
       color: #fff;
-      min-height: 100vh;
+      height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
 
     header {
-      background: rgba(15, 52, 96, 0.9);
+      background: rgba(15, 52, 96, 0.95);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1rem 2rem;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+      padding: 0.75rem 2rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    header img {
+      height: 55px;
+      width: auto;
+      filter: drop-shadow(0 0 6px rgba(156, 142, 241, 0.6));
+      transition: transform 0.3s ease, filter 0.3s ease;
+    }
+
+    header img:hover {
+      transform: scale(1.05);
+      filter: drop-shadow(0 0 10px rgba(156, 142, 241, 0.9));
     }
 
     header h1 {
-      font-size: 1.5rem;
-      color: #fff;
-      letter-spacing: 1px;
-    }
-
-    nav ul {
-      list-style: none;
-      display: flex;
-      gap: 1.5rem;
-    }
-
-    nav a {
-      color: #aaa;
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    nav a:hover {
-      color: #fff;
+      font-size: 1.4rem;
+      color: #9f8ef1;
+      text-shadow: 0 0 5px rgba(159, 142, 241, 0.6);
     }
 
     main {
       flex: 1;
-      padding: 2rem;
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      overflow: hidden;
     }
 
-    .grid {
+    /* ================== PAINEL ESQUERDO ================== */
+    .painel-esquerdo {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
+      grid-template-rows: repeat(4, 1fr);
+      gap: 0.7rem;
+      padding: 1rem;
+      overflow-y: auto;
     }
 
     .card {
       background: rgba(22, 33, 62, 0.95);
-      border-radius: 15px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      padding: 1.5rem;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     .card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
     }
 
     .card h3 {
       margin-top: 0;
       color: #9f8ef1;
+      font-size: 1.1rem;
     }
 
-    /* ==================== AI CHAT ==================== */
-    #chat-box {
-      height: 180px;
-      overflow-y: auto;
+    .campo-texto {
+      width: 100%;
+      padding: 0.7rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      margin-top: 0.5rem;
       background: #0f3460;
-      padding: 0.75rem;
-      border-radius: 10px;
-      margin-bottom: 0.5rem;
+      color: #fff;
+    }
+
+    #niche-input {
+      font-size: 1.1rem;
+      height: 2.5rem;
+    }
+
+    #niche-results {
+      margin-top: 0.5rem;
+      background: #16213e;
+      padding: 0.6rem;
+      border-radius: 8px;
+      min-height: 100px;
       font-size: 0.9rem;
     }
 
-    #chat-box p {
-      margin: 0.5rem 0;
-    }
-
-    #chat-input {
-      width: 80%;
-      padding: 0.5rem;
-      border: none;
-      border-radius: 10px;
-    }
-
-    #send-btn {
-      background: #9f8ef1;
-      color: #fff;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    #send-btn:hover {
-      background: #7c63e0;
-    }
-
-    /* ==================== NICHE SEARCH ==================== */
-    #niche-results {
-      background: #0f3460;
-      border-radius: 10px;
-      padding: 0.5rem;
-      min-height: 120px;
-      margin-top: 0.5rem;
-      overflow-y: auto;
-    }
-
-    /* ==================== STATISTICS ==================== */
+    /* ================== CANVAS DE ESTATÍSTICAS ================== */
     canvas {
-      width: 100%;
-      height: 200px;
+      width: 100% !important;
+      height: 140px !important;
     }
 
-    /* ==================== PROGRESS TRACKER ==================== */
-    .progress-container {
-      width: 100%;
-      background: #0f3460;
-      border-radius: 20px;
+    /* ================== PROGRESSO ================== */
+    .progress-bar-container {
+      background: #16213e;
+      border-radius: 12px;
       height: 20px;
-      margin-top: 1rem;
+      margin-top: 0.5rem;
+      overflow: hidden;
     }
 
     .progress-bar {
       height: 20px;
+      width: 0;
       background: linear-gradient(90deg, #6c63ff, #9f8ef1);
-      width: 75%;
-      border-radius: 20px;
-      transition: width 0.5s ease;
+      border-radius: 12px;
+      transition: width 0.4s ease;
     }
 
-    /* ==================== RECENT ACTIVITY ==================== */
-    #recent-activity ul {
-      list-style: none;
-      padding-left: 1rem;
+    #percentual {
+      text-align: right;
+      font-size: 0.9rem;
+      color: #9f8ef1;
     }
 
-    #recent-activity li {
-      padding: 0.5rem 0;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
+    /* ================== PAINEL DE GERAÇÃO ================== */
+    #painel-geracao {
+      background: #0f3460;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
     }
 
-    /* ==================== TOAST ==================== */
-    #toast {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      background: #6c63ff;
-      color: white;
-      padding: 1rem 1.5rem;
-      border-radius: 8px;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: all 0.4s ease;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    #painel-geracao h2 {
+      color: #9f8ef1;
+      text-align: center;
+      margin-top: 0;
     }
 
-    #toast.show {
-      opacity: 1;
-      transform: translateY(0);
+    #log {
+      flex: 1;
+      background: #16213e;
+      border-radius: 10px;
+      padding: 1rem;
+      font-family: monospace;
+      overflow-y: auto;
+      white-space: pre-line;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+
+    #gerarBtn {
+      margin-top: 1rem;
+      align-self: center;
+      background: #9f8ef1;
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      padding: 0.7rem 1.5rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    #gerarBtn:hover {
+      background: #7c63e0;
     }
 
     footer {
-      background: #0f3460;
       text-align: center;
-      padding: 1rem;
-      font-size: 0.9rem;
+      padding: 0.6rem;
+      font-size: 0.85rem;
       color: #ccc;
+      background: #0f3460;
     }
 
-    @media (max-width: 768px) {
-      nav ul {
-        flex-direction: column;
-        gap: 0.5rem;
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+      }
+      .painel-esquerdo {
+        grid-template-rows: none;
       }
     }
   </style>
 </head>
-
 <body>
-  <!-- ==================== HEADER ==================== -->
+  <!-- ================= HEADER ================= -->
   <header>
-    <h1><i class="fa-solid fa-book"></i> VIPNEXUS Dashboard</h1>
-    <nav>
-      <ul>
-        <li><a href="#">Início</a></li>
-        <li><a href="#">Projetos</a></li>
-        <li><a href="#">Configurações</a></li>
-      </ul>
-    </nav>
+    <img src="./assets/MARCA-MAE-HORIZONTAL.png" alt="Logo VIPNEXUS">
+    <h1>Veja seu E-book Nascer</h1>
   </header>
 
-  <!-- ==================== MAIN ==================== -->
+  <!-- ================= MAIN ================= -->
   <main>
-    <div class="grid">
-      <!-- AI CHAT -->
-      <div class="card" id="ai-chat">
-        <h3><i class="fa-solid fa-robot"></i> AI Chat</h3>
-        <div id="chat-box"></div>
-        <input type="text" id="chat-input" placeholder="Digite sua mensagem...">
-        <button id="send-btn">Enviar</button>
+    <div class="painel-esquerdo">
+      <!-- Chat IA -->
+      <div class="card">
+        <h3><i class="fa-solid fa-robot"></i> Chat IA</h3>
+        <textarea class="campo-texto" placeholder="Fale com a IA..."></textarea>
       </div>
 
-      <!-- NICHE SEARCH -->
-      <div class="card" id="niche-search">
-        <h3><i class="fa-solid fa-magnifying-glass"></i> Niche Search</h3>
-        <input type="text" id="niche-input" placeholder="Buscar nicho...">
-        <button id="search-btn">Buscar</button>
+      <!-- Pesquisa de Nichos -->
+      <div class="card">
+        <h3><i class="fa-solid fa-magnifying-glass"></i> Pesquisa de Nicho</h3>
+        <input id="niche-input" class="campo-texto" placeholder="Digite o nicho desejado...">
         <div id="niche-results"></div>
       </div>
 
-      <!-- STATISTICS -->
-      <div class="card" id="statistics">
-        <h3><i class="fa-solid fa-chart-pie"></i> Statistics</h3>
+      <!-- Assuntos Populares -->
+      <div class="card">
+        <h3><i class="fa-solid fa-chart-pie"></i> Assuntos Populares</h3>
         <canvas id="statsChart"></canvas>
       </div>
 
-      <!-- PROGRESS TRACKER -->
-      <div class="card" id="progress-tracker">
-        <h3><i class="fa-solid fa-tasks"></i> Progress Tracker</h3>
-        <p>Progresso geral do projeto:</p>
-        <div class="progress-container">
-          <div class="progress-bar" id="progress-bar"></div>
+      <!-- Progresso -->
+      <div class="card">
+        <h3><i class="fa-solid fa-chart-line"></i> Progresso</h3>
+        <div class="progress-bar-container">
+          <div class="progress-bar" id="barraProgresso"></div>
         </div>
-        <p id="progress-value">75%</p>
+        <p id="percentual">0%</p>
       </div>
     </div>
 
-    <!-- ==================== RECENT ACTIVITY ==================== -->
-    <div class="card" id="recent-activity">
-      <h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity</h3>
-      <ul id="activity-list">
-        <li>Ebook "Inteligência Estratégica" gerado com sucesso.</li>
-        <li>Novo nicho adicionado: "IA Aplicada à Educação".</li>
-        <li>Gráfico de performance atualizado.</li>
-      </ul>
-    </div>
+    <!-- Painel principal -->
+    <section id="painel-geracao">
+      <h2>Veja seu E-book Nascer</h2>
+      <div id="log">Aguardando início...</div>
+      <button id="gerarBtn"><i class="fa-solid fa-book"></i> Gerar E-book</button>
+    </section>
   </main>
 
-  <!-- ==================== FOOTER ==================== -->
+  <!-- ================= FOOTER ================= -->
   <footer>
-    <div class="progress-container">
-      <div class="progress-bar" style="width:75%;"></div>
-    </div>
-    <p>© 2025 VIPNEXUS IA • Todos os direitos reservados</p>
+    © 2025 VIPNEXUS IA • Todos os direitos reservados
   </footer>
 
-  <!-- ==================== TOAST ==================== -->
-  <div id="toast">Notificação!</div>
-
-  <!-- ==================== SCRIPT PRINCIPAL ==================== -->
+  <!-- ================= SCRIPT ================= -->
   <script>
-    // ======== AI CHAT SIMULADO ========
-    const chatBox = document.getElementById('chat-box');
-    const chatInput = document.getElementById('chat-input');
-    const sendBtn = document.getElementById('send-btn');
-
-    sendBtn.addEventListener('click', () => {
-      const text = chatInput.value.trim();
-      if (!text) return;
-      appendMessage('Você', text);
-      chatInput.value = '';
-      setTimeout(() => {
-        appendMessage('ORION IA', 'Mensagem recebida e processada com sucesso.');
-        showToast('Nova resposta do ORION IA');
-      }, 1000);
-    });
-
-    function appendMessage(sender, message) {
-      const p = document.createElement('p');
-      p.innerHTML = `<strong>${sender}:</strong> ${message}`;
-      chatBox.appendChild(p);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    // ======== NICHE SEARCH ========
-    const searchBtn = document.getElementById('search-btn');
-    const nicheInput = document.getElementById('niche-input');
-    const nicheResults = document.getElementById('niche-results');
-
-    searchBtn.addEventListener('click', () => {
-      const query = nicheInput.value.trim();
-      if (!query) return;
-      nicheResults.innerHTML = '<p>Buscando nichos relacionados...</p>';
-      setTimeout(() => {
-        nicheResults.innerHTML = `
-          <p><i class="fa-solid fa-lightbulb"></i> ${query} Premium</p>
-          <p><i class="fa-solid fa-lightbulb"></i> ${query} Avançado</p>
-          <p><i class="fa-solid fa-lightbulb"></i> ${query} Profissional</p>`;
-        showToast('Resultados de nicho atualizados');
-      }, 1000);
-    });
-
-    // ======== CHART JS ========
-    const ctx = document.getElementById('statsChart').getContext('2d');
+    /* ===== Gráfico de Assuntos Populares ===== */
+    const ctx = document.getElementById("statsChart");
     new Chart(ctx, {
-      type: 'bar',
+      type: "bar",
       data: {
-        labels: ['Ebooks', 'Projetos', 'IA Chats', 'Pesquisas'],
+        labels: ["Inteligência Artificial", "Finanças", "Marketing", "Saúde", "Tecnologia"],
         datasets: [{
-          label: 'Performance',
-          data: [12, 19, 7, 15],
-          backgroundColor: ['#6c63ff', '#9f8ef1', '#7c63e0', '#b095ff']
+          label: "Popularidade",
+          data: [18, 14, 10, 7, 20],
+          backgroundColor: ["#6c63ff","#9f8ef1","#7c63e0","#b095ff","#8a7cf0"]
         }]
       },
-      options: {
-        responsive: true,
-        scales: {
-          y: { beginAtZero: true }
+      options: { scales: { y: { beginAtZero: true } } }
+    });
+
+    /* ===== Simulação da geração do E-book ===== */
+    const etapas = [
+      "🔍 Analisando o nicho selecionado...",
+      "🧠 Estruturando tópicos e capítulos...",
+      "✍️ Escrevendo a introdução...",
+      "📄 Gerando capítulos principais...",
+      "🎨 Criando capa e metadados...",
+      "📚 Montando sumário e revisando conteúdo...",
+      "✅ E-book concluído com sucesso!"
+    ];
+
+    const log = document.getElementById("log");
+    const barra = document.getElementById("barraProgresso");
+    const pct = document.getElementById("percentual");
+
+    document.getElementById("gerarBtn").addEventListener("click", () => {
+      log.textContent = "";
+      barra.style.width = "0%";
+      pct.textContent = "0%";
+
+      let etapa = 0;
+      function proximoPasso() {
+        if (etapa < etapas.length) {
+          log.textContent += etapas[etapa] + "\n";
+          barra.style.width = ((etapa + 1) / etapas.length * 100) + "%";
+          pct.textContent = Math.round((etapa + 1) / etapas.length * 100) + "%";
+          etapa++;
+          setTimeout(proximoPasso, 2000); // intervalo entre etapas
         }
       }
+      proximoPasso();
     });
-
-    // ======== PROGRESS TRACKER ========
-    const progressBar = document.getElementById('progress-bar');
-    const progressValue = document.getElementById('progress-value');
-
-    progressBar.addEventListener('click', () => {
-      let width = Math.min(100, Math.random() * 100);
-      progressBar.style.width = width + '%';
-      progressValue.textContent = Math.round(width) + '%';
-      showToast('Progresso atualizado');
-    });
-
-    // ======== SISTEMA DE TOAST ========
-    const toast = document.getElementById('toast');
-    function showToast(message) {
-      toast.textContent = message;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 3000);
-    }
   </script>
 </body>
 </html>
+
